@@ -2,8 +2,21 @@ import CalendarWidget from "@/components/CalendarWidget";
 import AnnouncementBoard from "@/components/AnnouncementBoard";
 import { QrCode, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getSession();
+  
+  // If user is already logged in, redirect them to their respective dashboard
+  if (session) {
+    if (session.role === "admin") {
+      redirect("/admin");
+    } else if (session.role === "student") {
+      redirect("/student");
+    }
+  }
+
   return (
     <div className="flex flex-col gap-8 md:gap-12 animate-in fade-in duration-500">
       {/* Hero Section */}
