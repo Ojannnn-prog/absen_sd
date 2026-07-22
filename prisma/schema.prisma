@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Student {
+  id          String       @id @default(cuid())
+  name        String
+  gender      String       // "L" atau "P"
+  birthPlace  String?
+  birthDate   DateTime?
+  studentCode String       @unique // Format: 2312026xxx
+  username    String       @unique
+  password    String
+  attendances Attendance[]
+  createdAt   DateTime     @default(now())
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status    String   // "Hadir", "Izin", "Absen"
+  timestamp DateTime @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+}
