@@ -28,7 +28,7 @@ export default function StudentCard({ student }: { student: any }) {
   return (
     <>
       <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center gap-4 relative overflow-hidden group">
-        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
+        <div className="absolute top-3 right-3 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all z-10">
           <button 
             onClick={() => setIsEditOpen(true)}
             className="p-2 bg-gray-50 text-gray-400 hover:text-primary hover:bg-indigo-50 rounded-full transition-colors"
