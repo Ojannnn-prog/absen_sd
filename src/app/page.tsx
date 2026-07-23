@@ -22,9 +22,12 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="flex flex-col lg:flex-row items-center justify-between gap-8 py-4">
         <div className="flex-1 flex flex-col gap-6">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-text-header leading-tight">
-            Absensi Lebih Cepat <br className="hidden md:block"/> dengan <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">QR Code</span>
-          </h1>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+            <img src="/icon.svg" alt="Logo Absensi" className="w-16 h-16 sm:w-20 sm:h-20 drop-shadow-lg" />
+            <h1 className="text-4xl md:text-5xl font-extrabold text-text-header leading-tight">
+              Absensi Lebih Cepat <br className="hidden lg:block"/> dengan <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">QR Code</span>
+            </h1>
+          </div>
           <p className="text-lg text-text-body max-w-xl">
             Sistem absensi modern untuk SDN 231 Sukaasih. Pindai QR Code untuk mencatat kehadiran secara *real-time* dan transparan.
           </p>
