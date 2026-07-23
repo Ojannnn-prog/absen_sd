@@ -42,7 +42,7 @@ export default function ThemeShop({
           toast.success(`Tema ${theme.name} berhasil dipakai!`);
           router.refresh();
         } else {
-          toast.error(res.message);
+          toast.error(res.message || "Gagal memakai tema");
         }
       } else {
         // Buy theme
@@ -56,7 +56,7 @@ export default function ThemeShop({
           toast.success(`Berhasil membeli Tema ${theme.name}!`);
           router.refresh();
         } else {
-          toast.error(res.message);
+          toast.error(res.message || "Gagal membeli tema");
         }
       }
     } catch (error) {
