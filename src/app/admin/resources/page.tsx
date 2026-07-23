@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminResourcesClient from "./AdminResourcesClient";
+import AdminProgressTable from "./AdminProgressTable";
 
 export default async function AdminResourcesPage() {
   const session = await getSession();
@@ -13,6 +14,14 @@ export default async function AdminResourcesPage() {
     orderBy: { orderIndex: 'asc' }
   });
 
+  const rawStudents = await prisma.student.findMany({
+    include: {
+      studentProgress: true
+    },
+    orderBy: { name: 'asc' }
+  });
+  const students = JSON.parse(JSON.stringify(rawStudents));
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -23,6 +32,8 @@ export default async function AdminResourcesPage() {
       </div>
 
       <AdminResourcesClient initialResources={resources} />
+      
+      <AdminProgressTable students={students} totalResources={resources.length} />
     </div>
   );
 }

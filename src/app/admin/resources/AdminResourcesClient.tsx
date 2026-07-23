@@ -24,6 +24,12 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
     }
 
     setLoading(true);
+    // Auto-fix Google Drive URLs from /view to /preview
+    let formattedUrl = driveUrl;
+    if (formattedUrl.includes('/view')) {
+      formattedUrl = formattedUrl.replace('/view', '/preview');
+    }
+
     // Generate random duration between 5 to 30 mins based on type
     const randomMins = type === 'Video' ? Math.floor(Math.random() * 20) + 10 : Math.floor(Math.random() * 10) + 5;
 
@@ -32,7 +38,7 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
         title,
         type,
         description,
-        driveUrl,
+        driveUrl: formattedUrl,
         durationMins: randomMins
       });
 
