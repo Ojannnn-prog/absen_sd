@@ -7,7 +7,6 @@ export default function ToastProvider() {
   return (
     <Toaster 
       position="top-center" 
-      pauseOnHover={false}
       toastOptions={{
         duration: 3000,
         style: {
