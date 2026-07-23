@@ -2,6 +2,7 @@ import StudentList from "@/components/StudentList";
 import AdminHeader from "./AdminHeader";
 import AttendanceChart from "@/components/AttendanceChart";
 import ExportButtons from "@/components/ExportButtons";
+import ImportStudentsModal from "@/components/ImportStudentsModal";
 import { Users } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -46,7 +47,10 @@ export default async function AdminDashboard() {
             <Users className="w-5 h-5 text-primary" />
             Daftar Siswa
           </h2>
-          <ExportButtons />
+          <div className="flex gap-2 items-center">
+            <ImportStudentsModal />
+            <ExportButtons />
+          </div>
         </div>
         
         <StudentList initialStudents={students} />
