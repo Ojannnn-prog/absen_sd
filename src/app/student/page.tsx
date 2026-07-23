@@ -6,7 +6,7 @@ import ProfileEditor from "@/components/ProfileEditor";
 import ThemeShop from "@/components/ThemeShop";
 import { format, addHours } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { History, Crown, Medal, Flame } from "lucide-react";
+import { History, Crown, Medal, Flame, Award, CheckCircle2, XCircle } from "lucide-react";
 import { redirect } from "next/navigation";
 
 export default async function StudentDashboard() {
@@ -21,6 +21,10 @@ export default async function StudentDashboard() {
     include: {
       attendances: {
         orderBy: { timestamp: "desc" },
+      },
+      quizAttempts: {
+        include: { resource: true },
+        orderBy: { createdAt: "desc" }
       }
     }
   });
@@ -106,6 +110,61 @@ export default async function StudentDashboard() {
         unlockedThemes={student.unlockedThemes}
         activeTheme={student.activeTheme}
       />
+
+      {/* Riwayat Nilai Ujian */}
+      <div className="card-soft p-6 md:p-8">
+        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+          <Award className="w-6 h-6 text-yellow-500" />
+          Riwayat Nilai Ujian (Quiz)
+        </h2>
+        
+        {(!student.quizAttempts || student.quizAttempts.length === 0) ? (
+          <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+            Belum ada data ujian. Ikuti sesi Quiz di Ruang Belajar untuk mendapatkan nilai!
+          </div>
+        ) : (
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse min-w-[500px]">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="py-3 px-4 font-bold text-gray-600">Topik / Nama Quiz</th>
+                  <th className="py-3 px-4 font-bold text-gray-600 text-center">Skor (0-100)</th>
+                  <th className="py-3 px-4 font-bold text-gray-600 text-center">Status Kelulusan</th>
+                  <th className="py-3 px-4 font-bold text-gray-600">Waktu Pengerjaan</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {student.quizAttempts.map((att: any) => (
+                  <tr key={att.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-3 px-4 font-bold text-gray-900">
+                      {att.resource?.title || "Quiz Tidak Diketahui"}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`text-lg font-black ${att.passed ? 'text-green-600' : 'text-red-500'}`}>
+                        {att.score}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {att.passed ? (
+                        <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
+                          <CheckCircle2 className="w-4 h-4" /> Lulus
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-bold">
+                          <XCircle className="w-4 h-4" /> Mengulang
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-500 font-medium">
+                      {format(addHours(att.createdAt, 7), "dd MMM yyyy, HH:mm", { locale: localeId })} WIB
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Riwayat Absensi */}
       <div className="card-soft p-6 md:p-8">
