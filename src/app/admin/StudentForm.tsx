@@ -31,10 +31,14 @@ export default function StudentForm() {
     
     try {
       const res = await createStudent(formData);
-      setResult(res);
-      form.reset();
-      setGender("");
-      toast.success("Siswa berhasil ditambahkan!", { id: toastId });
+      if (res.success) {
+        setResult(res);
+        form.reset();
+        setGender("");
+        toast.success("Siswa berhasil ditambahkan!", { id: toastId });
+      } else {
+        toast.error(res.message || "Gagal menyimpan data", { id: toastId });
+      }
     } catch (err: any) {
       toast.error(err.message || "Gagal menyimpan data", { id: toastId });
     } finally {

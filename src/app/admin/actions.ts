@@ -11,7 +11,7 @@ export async function createStudent(formData: FormData) {
   const birthDateStr = formData.get("birthDate") as string;
   
   if (!name || !gender) {
-    throw new Error("Nama dan jenis kelamin wajib diisi");
+    return { success: false, message: "Nama dan jenis kelamin wajib diisi" };
   }
 
   // Parse tanggal lahir
@@ -20,80 +20,112 @@ export async function createStudent(formData: FormData) {
     birthDate = new Date(birthDateStr);
   }
 
-  // Generate sequence number
-  const count = await prisma.student.count();
-  const sequence = String(count + 1).padStart(3, "0");
-  const studentCode = `2312026${sequence}`;
-
-  // Generate username and password
-  const username = studentCode; // Bisa disesuaikan
-  // Password acak 8 karakter
-  const randomPass = Math.random().toString(36).slice(-8);
-  const hashedPassword = await hashPassword(randomPass);
-
-  await prisma.student.create({
-    data: {
-      name,
-      gender,
-      birthPlace,
-      birthDate,
-      studentCode,
-      username,
-      password: hashedPassword,
+  try {
+    // Generate sequence number based on highest existing studentCode
+    const lastStudent = await prisma.student.findFirst({
+      orderBy: { studentCode: 'desc' }
+    });
+    
+    let nextSequence = 1;
+    if (lastStudent && lastStudent.studentCode.startsWith('2312026')) {
+      const lastSeqStr = lastStudent.studentCode.slice(7);
+      const lastSeqNum = parseInt(lastSeqStr, 10);
+      if (!isNaN(lastSeqNum)) {
+        nextSequence = lastSeqNum + 1;
+      }
     }
-  });
 
-  revalidatePath("/admin");
-  
-  return { 
-    success: true, 
-    studentCode, 
-    username, 
-    password: randomPass // Kembalikan password asli sekali saja untuk dicatat admin
-  };
+    const sequence = String(nextSequence).padStart(3, "0");
+    const studentCode = `2312026${sequence}`;
+
+    // Generate username and password
+    const username = studentCode; // Bisa disesuaikan
+    // Password acak 8 karakter
+    const randomPass = Math.random().toString(36).slice(-8);
+    const hashedPassword = await hashPassword(randomPass);
+
+    await prisma.student.create({
+      data: {
+        name,
+        gender,
+        birthPlace,
+        birthDate,
+        studentCode,
+        username,
+        password: hashedPassword,
+      }
+    });
+
+    revalidatePath("/admin");
+    
+    return { 
+      success: true, 
+      studentCode, 
+      username, 
+      password: randomPass // Kembalikan password asli sekali saja untuk dicatat admin
+    };
+  } catch (error: any) {
+    console.error("Create Student Error:", error);
+    return { success: false, message: "Terjadi kesalahan sistem saat membuat data siswa." };
+  }
 }
 
 export async function importStudentsBulk(studentsData: any[]) {
-  if (!studentsData || studentsData.length === 0) {
-    throw new Error("Data siswa kosong");
-  }
-
-  // Hash password sementara sekali (karena semuanya sama)
-  const defaultPassword = "231Sukaasih";
-  const hashedPassword = await hashPassword(defaultPassword);
-
-  // Ambil jumlah siswa saat ini untuk men-generate kode urut
-  const count = await prisma.student.count();
-  
-  const newStudents = studentsData.map((student, index) => {
-    const sequence = String(count + index + 1).padStart(3, "0");
-    const studentCode = `2312026${sequence}`;
-    
-    // Parse tanggal jika ada
-    let birthDate = null;
-    if (student.birthDate) {
-      // Excel might return date as string or JS Date object
-      birthDate = new Date(student.birthDate);
+  try {
+    if (!studentsData || studentsData.length === 0) {
+      return { success: false, message: "Data siswa kosong" };
     }
 
-    return {
-      name: student.name || "Tanpa Nama",
-      gender: student.gender === "P" || student.gender === "Perempuan" ? "P" : "L",
-      birthPlace: student.birthPlace || null,
-      birthDate: birthDate,
-      studentCode: studentCode,
-      username: studentCode,
-      password: hashedPassword,
-    };
-  });
+    // Hash password sementara sekali (karena semuanya sama)
+    const defaultPassword = "231Sukaasih";
+    const hashedPassword = await hashPassword(defaultPassword);
 
-  // Gunakan transaction untuk memastikan semua masuk atau gagal semua
-  await prisma.$transaction(
-    newStudents.map((data) => prisma.student.create({ data }))
-  );
+    // Generate sequence number based on highest existing studentCode
+    const lastStudent = await prisma.student.findFirst({
+      orderBy: { studentCode: 'desc' }
+    });
+    
+    let nextSequence = 1;
+    if (lastStudent && lastStudent.studentCode.startsWith('2312026')) {
+      const lastSeqStr = lastStudent.studentCode.slice(7);
+      const lastSeqNum = parseInt(lastSeqStr, 10);
+      if (!isNaN(lastSeqNum)) {
+        nextSequence = lastSeqNum + 1;
+      }
+    }
+    
+    const newStudents = studentsData.map((student, index) => {
+      const sequence = String(nextSequence + index).padStart(3, "0");
+      const studentCode = `2312026${sequence}`;
+      
+      // Parse tanggal jika ada
+      let birthDate = null;
+      if (student.birthDate) {
+        birthDate = new Date(student.birthDate);
+      }
 
-  revalidatePath("/admin");
-  return { success: true, count: newStudents.length };
+      return {
+        name: student.name || "Tanpa Nama",
+        gender: student.gender === "P" || student.gender === "Perempuan" ? "P" : "L",
+        birthPlace: student.birthPlace || null,
+        birthDate: birthDate,
+        studentCode: studentCode,
+        username: studentCode,
+        password: hashedPassword,
+      };
+    });
+
+    // Gunakan transaction untuk memastikan semua masuk atau gagal semua
+    await prisma.$transaction(
+      newStudents.map((data) => prisma.student.create({ data }))
+    );
+
+    revalidatePath("/admin");
+    return { success: true, count: newStudents.length };
+  } catch (error: any) {
+    console.error("Bulk Import Error:", error);
+    return { success: false, message: "Terjadi kesalahan sistem saat menyimpan data (mungkin ada data duplikat atau bentrok)." };
+  }
 }
 
 export async function updateStudent(id: string, formData: FormData) {
