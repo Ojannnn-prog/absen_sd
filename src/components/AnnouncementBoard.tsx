@@ -43,10 +43,10 @@ export default async function AnnouncementBoard() {
           <div className="flex flex-col gap-4">
             {announcements.map((ann) => (
               <div key={ann.id} className="p-5 rounded-xl bg-blue-50/40 border border-blue-100 hover:shadow-md transition-shadow">
-                <h3 className="font-bold text-gray-900 mb-2">{ann.title}</h3>
+                <h3 className="font-bold text-gray-900 mb-2 break-words">{ann.title}</h3>
                 
                 <div 
-                  className="prose prose-sm prose-blue max-w-none text-gray-700 leading-relaxed"
+                  className="prose prose-sm prose-blue max-w-none text-gray-700 leading-relaxed break-words overflow-hidden"
                   dangerouslySetInnerHTML={{ __html: ann.content }}
                 />
                 
