@@ -53,10 +53,46 @@ export default function ImportStudentsModal() {
           throw new Error("File Excel kosong atau format tidak sesuai");
         }
 
+        // Helper function to safely parse Excel dates or string dates
+        const parseExcelDate = (dateValue: any) => {
+          if (!dateValue) return null;
+          
+          // Jika dateValue adalah angka (Excel Serial Date)
+          if (typeof dateValue === 'number') {
+            // Excel counts days since Dec 30, 1899
+            const date = new Date((dateValue - 25569) * 86400 * 1000);
+            return date.toISOString();
+          }
+          
+          // Jika dateValue adalah string
+          if (typeof dateValue === 'string') {
+            const str = dateValue.trim();
+            // Cek format DD/MM/YYYY atau DD-MM-YYYY
+            const parts = str.split(/[\/\-]/);
+            if (parts.length === 3) {
+              // Jika tahun di depan (YYYY-MM-DD)
+              if (parts[0].length === 4) {
+                const d = new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
+                if (!isNaN(d.getTime())) return d.toISOString();
+              } 
+              // Jika hari di depan (DD-MM-YYYY)
+              else if (parts[2].length === 4) {
+                const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (!isNaN(d.getTime())) return d.toISOString();
+              }
+            }
+            // Fallback JS date parser
+            const d = new Date(str);
+            if (!isNaN(d.getTime())) return d.toISOString();
+          }
+          
+          return null;
+        };
+
         const studentsToImport = rows.map((row: any) => ({
           name: String(row[0] || "").trim(),
           birthPlace: row[1] ? String(row[1]).trim() : "",
-          birthDate: row[2] ? new Date(row[2]).toISOString() : null,
+          birthDate: parseExcelDate(row[2]),
           gender: String(row[3] || "L").trim().toUpperCase(),
         }));
 
