@@ -10,6 +10,24 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
   const [students, setStudents] = useState(initialStudents);
   const [search, setSearch] = useState("");
   
+  const getOnlineStatus = (lastActive: string | null) => {
+    if (!lastActive) return { isOnline: false, text: "Belum pernah login" };
+    
+    const last = new Date(lastActive);
+    const now = new Date();
+    const diffMins = (now.getTime() - last.getTime()) / (1000 * 60);
+    
+    // Aktif dalam 5 menit terakhir = Online
+    if (diffMins <= 5) {
+      return { isOnline: true, text: "Online saat ini" };
+    }
+    
+    return { 
+      isOnline: false, 
+      text: "Terakhir: " + last.toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+    };
+  };
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
@@ -144,6 +162,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                 <th className="py-4 px-6 font-bold text-gray-600">Gamifikasi</th>
                 <th className="py-4 px-6 font-bold text-gray-600">Kata Sandi</th>
                 <th className="py-4 px-6 font-bold text-gray-600">TTL & Gender</th>
+                <th className="py-4 px-6 font-bold text-gray-600 text-center">Status Akses</th>
                 <th className="py-4 px-6 font-bold text-gray-600 text-center">QR Code</th>
                 <th className="py-4 px-6 font-bold text-gray-600 text-center">Aksi</th>
               </tr>
@@ -203,6 +222,22 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                         <div className="text-xs text-gray-500 mt-1 uppercase font-bold">
                           {student.gender === "L" ? "Laki-laki" : student.gender === "P" ? "Perempuan" : "-"}
                         </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        {(() => {
+                          const status = getOnlineStatus(student.lastActive);
+                          return (
+                            <div className="flex flex-col items-center">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold ${status.isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                <span className={`w-2 h-2 rounded-full ${status.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+                                {status.isOnline ? "Online" : "Offline"}
+                              </span>
+                              <span className="text-[11px] text-gray-500 font-medium mt-1 whitespace-nowrap text-center">
+                                {status.text}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="py-4 px-6 text-center">
                         <button 

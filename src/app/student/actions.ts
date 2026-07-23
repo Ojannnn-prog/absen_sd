@@ -110,3 +110,17 @@ export async function equipTheme(themeId: string) {
     return { success: false, message: "Gagal memakai tema" };
   }
 }
+
+export async function pingActive() {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "student") return;
+
+    await prisma.student.update({
+      where: { id: session.id },
+      data: { lastActive: new Date() }
+    });
+  } catch (error) {
+    // silently fail
+  }
+}

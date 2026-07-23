@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
 import { Bell, Trophy, AlertCircle, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { format, addHours } from "date-fns";
 import { id } from "date-fns/locale";
+
 
 export default async function AnnouncementBoard() {
   // Fetch latest 3 announcements
@@ -52,7 +53,7 @@ export default async function AnnouncementBoard() {
                 
                 <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-blue-100/50 text-[11px] text-gray-500 font-medium">
                   <Calendar className="w-3.5 h-3.5" />
-                  Diunggah pada {format(ann.createdAt, "dd MMMM yyyy, HH:mm", { locale: id })}
+                  Diunggah pada {format(addHours(ann.createdAt, 7), "dd MMMM yyyy, HH:mm", { locale: id })} WIB
                 </div>
               </div>
             ))}

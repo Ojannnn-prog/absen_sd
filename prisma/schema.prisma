@@ -33,6 +33,7 @@ model Student {
   studentProgress StudentProgress[]
   quizAttempts    QuizAttempt[]
   createdAt       DateTime          @default(now())
+  lastActive      DateTime?
 }
 
 model Attendance {

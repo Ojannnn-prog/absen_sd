@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import ActivePing from "./ActivePing";
 
 export default function Navbar({ role }: { role: string | null }) {
   const router = useRouter();
@@ -49,6 +50,7 @@ export default function Navbar({ role }: { role: string | null }) {
     if (role === "student") {
       return (
         <>
+          <ActivePing />
           <a href="/student" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
             <Home className="w-5 h-5" /> Profil & Absensi
           </a>
