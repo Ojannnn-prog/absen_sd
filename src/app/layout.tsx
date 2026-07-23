@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import AuthNav from "@/components/AuthNav";
+import Navbar from "@/components/Navbar";
 import { getSession } from "@/lib/auth";
 import ToastProvider from "@/components/ToastProvider";
 import CookieConsent from "@/components/CookieConsent";
@@ -26,21 +26,20 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getSession();
-  const isLoggedIn = !!session;
 
   return (
     <html lang="id" className={`${plusJakartaSans.variable}`}>
       <body className="bg-bg-light min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-primary/20 selection:text-primary">
         <ToastProvider />
         <CookieConsent />
-        <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/70 border-b border-gray-100/50 supports-[backdrop-filter]:bg-white/40 px-6 py-4 flex justify-between items-center transition-all duration-300">
+        <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/70 border-b border-gray-100/50 supports-[backdrop-filter]:bg-white/40 px-6 py-4 flex justify-between items-center transition-all duration-300 relative">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white font-bold shadow-md shadow-primary/20">
               SD
             </div>
             <h1 className="text-xl font-extrabold text-text-header tracking-tight">SDN 231 Sukaasih</h1>
           </div>
-          <AuthNav isLoggedIn={isLoggedIn} />
+          <Navbar role={session?.role || null} />
         </header>
 
         {/* Main Content */}
