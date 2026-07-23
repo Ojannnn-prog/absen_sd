@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AuthNav from "@/components/AuthNav";
@@ -10,6 +10,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  themeColor: "#4f46e5",
+};
 
 export const metadata: Metadata = {
   title: "Sistem Absensi SD",
