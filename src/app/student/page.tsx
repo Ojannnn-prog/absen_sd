@@ -4,7 +4,7 @@ import StudentQR from "@/components/StudentQR";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
 import ProfileEditor from "@/components/ProfileEditor";
 import ThemeShop from "@/components/ThemeShop";
-import { format } from "date-fns";
+import { format, addHours } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { History, Crown, Medal, Flame } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -128,8 +128,15 @@ export default async function StudentDashboard() {
                     att.status === 'Izin' ? 'bg-yellow-400' : 'bg-red-400'
                   } group-hover:scale-y-110 transition-transform`}></div>
                   <div>
-                    <p className="font-bold text-gray-900">{format(att.timestamp, "EEEE, dd MMMM yyyy", { locale: localeId })}</p>
-                    <p className="text-sm font-medium text-gray-500">{format(att.timestamp, "HH:mm 'WIB'", { locale: localeId })}</p>
+                    {(() => {
+                      const wibTime = addHours(att.timestamp, 7);
+                      return (
+                        <>
+                          <p className="font-bold text-gray-900">{format(wibTime, "EEEE, dd MMMM yyyy", { locale: localeId })}</p>
+                          <p className="text-sm font-medium text-gray-500">{format(wibTime, "HH:mm 'WIB'", { locale: localeId })}</p>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div className={`px-4 py-1.5 rounded-xl text-sm font-black uppercase tracking-wider ${
