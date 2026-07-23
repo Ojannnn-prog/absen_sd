@@ -61,7 +61,7 @@ export default async function StudentDashboard() {
           )}
         </div>
         
-        <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start z-10 w-full">
+        <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start relative z-20 w-full">
           {/* Level Badge */}
           <div className="mb-3">
             {isProPlayer ? (
