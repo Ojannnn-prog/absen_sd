@@ -17,7 +17,10 @@ export async function createStudent(formData: FormData) {
   // Parse tanggal lahir
   let birthDate = null;
   if (birthDateStr) {
-    birthDate = new Date(birthDateStr);
+    const parsed = new Date(birthDateStr);
+    if (!isNaN(parsed.getTime())) {
+      birthDate = parsed;
+    }
   }
 
   try {
@@ -101,7 +104,10 @@ export async function importStudentsBulk(studentsData: any[]) {
       // Parse tanggal jika ada
       let birthDate = null;
       if (student.birthDate) {
-        birthDate = new Date(student.birthDate);
+        const parsed = new Date(student.birthDate);
+        if (!isNaN(parsed.getTime())) {
+          birthDate = parsed;
+        }
       }
 
       return {
@@ -115,13 +121,14 @@ export async function importStudentsBulk(studentsData: any[]) {
       };
     });
 
-    // Gunakan transaction untuk memastikan semua masuk atau gagal semua
-    await prisma.$transaction(
-      newStudents.map((data) => prisma.student.create({ data }))
-    );
+    // Gunakan createMany untuk bulk insert yang lebih aman dan efisien
+    const result = await prisma.student.createMany({
+      data: newStudents,
+      skipDuplicates: true
+    });
 
     revalidatePath("/admin");
-    return { success: true, count: newStudents.length };
+    return { success: true, count: result.count };
   } catch (error: any) {
     console.error("Bulk Import Error:", error);
     return { success: false, message: "Terjadi kesalahan sistem saat menyimpan data (mungkin ada data duplikat atau bentrok)." };
@@ -137,7 +144,10 @@ export async function updateStudent(id: string, formData: FormData) {
 
   let birthDate = null;
   if (birthDateStr) {
-    birthDate = new Date(birthDateStr);
+    const parsed = new Date(birthDateStr);
+    if (!isNaN(parsed.getTime())) {
+      birthDate = parsed;
+    }
   }
 
   const updateData: any = {

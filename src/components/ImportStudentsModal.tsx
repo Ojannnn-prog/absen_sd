@@ -101,6 +101,8 @@ export default function ImportStudentsModal() {
         if (result.success) {
           toast.success(`${result.count} data siswa berhasil diimpor! Password default: 231Sukaasih`, { duration: 5000 });
           setIsOpen(false);
+        } else {
+          toast.error(result.message || "Gagal mengimpor data");
         }
       } catch (error: any) {
         toast.error("Gagal mengimpor data: " + error.message);
