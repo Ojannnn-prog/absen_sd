@@ -17,7 +17,8 @@ export default async function StudentCoursePage() {
 
   // Get all resources
   const resources = await prisma.courseResource.findMany({
-    orderBy: { orderIndex: 'asc' }
+    orderBy: { orderIndex: 'asc' },
+    include: { questions: true }
   });
 
   // Get student progress
@@ -26,11 +27,15 @@ export default async function StudentCoursePage() {
     select: { resourceId: true }
   });
 
+  const quizAttempts = await prisma.quizAttempt.findMany({
+    where: { studentId: session.id }
+  });
+
   const completedIds = progress.map(p => p.resourceId);
 
   return (
     <div className={`theme-${student?.activeTheme || 'default'} animate-in fade-in duration-500 min-h-screen flex flex-col`}>
-      <CourseClient resources={resources} completedIds={completedIds} />
+      <CourseClient resources={resources} completedIds={completedIds} quizAttempts={quizAttempts} />
     </div>
   );
 }

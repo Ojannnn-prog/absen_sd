@@ -28,13 +28,14 @@ export default function AdminProgressTable({
               <th className="py-3 px-4 font-bold text-gray-600">Nama Siswa</th>
               <th className="py-3 px-4 font-bold text-gray-600 text-center">Materi Selesai</th>
               <th className="py-3 px-4 font-bold text-gray-600 w-full">Progres Bar</th>
+              <th className="py-3 px-4 font-bold text-gray-600">Nilai Quiz</th>
               <th className="py-3 px-4 font-bold text-gray-600 text-center">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {students.length === 0 ? (
               <tr>
-                <td colSpan={4} className="py-8 text-center text-gray-500">
+                <td colSpan={5} className="py-8 text-center text-gray-500">
                   Belum ada data siswa.
                 </td>
               </tr>
@@ -43,6 +44,17 @@ export default function AdminProgressTable({
                 const completedCount = student.studentProgress?.length || 0;
                 const percent = totalResources > 0 ? Math.round((completedCount / totalResources) * 100) : 0;
                 const isFinished = percent === 100 && totalResources > 0;
+                
+                // Get highest score per quiz
+                const bestScores: Record<string, any> = {};
+                if (student.quizAttempts) {
+                  student.quizAttempts.forEach((attempt: any) => {
+                    if (!bestScores[attempt.resourceId] || bestScores[attempt.resourceId].score < attempt.score) {
+                      bestScores[attempt.resourceId] = attempt;
+                    }
+                  });
+                }
+                const quizResults = Object.values(bestScores);
 
                 return (
                   <tr key={student.id} className="hover:bg-gray-50 transition-colors">
@@ -62,6 +74,19 @@ export default function AdminProgressTable({
                           ></div>
                         </div>
                         <span className="text-xs font-bold text-gray-500 w-8">{percent}%</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-wrap gap-1">
+                        {quizResults.length === 0 ? (
+                          <span className="text-xs text-gray-400">-</span>
+                        ) : (
+                          quizResults.map((qr: any) => (
+                            <span key={qr.id} className={`text-xs font-bold px-2 py-1 rounded-md ${qr.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`} title={qr.resource?.title}>
+                              {qr.score}
+                            </span>
+                          ))
+                        )}
                       </div>
                     </td>
                     <td className="py-3 px-4 text-center">

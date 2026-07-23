@@ -10,6 +10,7 @@ export async function createResource(data: {
   description: string;
   driveUrl: string;
   durationMins: number;
+  questions?: any[];
 }) {
   try {
     const session = await getSession();
@@ -19,12 +20,19 @@ export async function createResource(data: {
     const lastResource = await prisma.courseResource.findFirst({
       orderBy: { orderIndex: 'desc' }
     });
-    const nextOrder = lastResource ? lastResource.orderIndex + 1 : 1;
+    const nextOrder = lastResource ? lastResource.orderIndex + 1 : 0;
 
     await prisma.courseResource.create({
       data: {
-        ...data,
-        orderIndex: nextOrder
+        title: data.title,
+        type: data.type,
+        description: data.description,
+        driveUrl: data.driveUrl,
+        durationMins: data.durationMins,
+        orderIndex: nextOrder,
+        questions: data.questions ? {
+          create: data.questions
+        } : undefined
       }
     });
 
@@ -43,14 +51,29 @@ export async function updateResource(id: string, data: {
   description: string;
   driveUrl: string;
   durationMins: number;
+  questions?: any[];
 }) {
   try {
     const session = await getSession();
     if (!session || session.role !== "admin") return { success: false, message: "Unauthorized" };
 
+    if (data.type === 'Quiz' && data.questions) {
+      // Delete existing questions and recreate
+      await prisma.question.deleteMany({ where: { resourceId: id } });
+    }
+
     await prisma.courseResource.update({
       where: { id },
-      data
+      data: {
+        title: data.title,
+        type: data.type,
+        description: data.description,
+        driveUrl: data.driveUrl,
+        durationMins: data.durationMins,
+        questions: data.questions ? {
+          create: data.questions
+        } : undefined
+      }
     });
 
     revalidatePath("/admin/resources");

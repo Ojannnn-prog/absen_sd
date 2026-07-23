@@ -31,6 +31,7 @@ model Student {
   unlockedThemes  String[]          @default(["default"])
   attendances     Attendance[]
   studentProgress StudentProgress[]
+  quizAttempts    QuizAttempt[]
   createdAt       DateTime          @default(now())
 }
 
@@ -59,6 +60,30 @@ model CourseResource {
   orderIndex   Int               @default(0) // Untuk mengurutkan materi
   createdAt    DateTime          @default(now())
   progress     StudentProgress[]
+  questions    Question[]
+  quizAttempts QuizAttempt[]
+}
+
+model Question {
+  id            String         @id @default(cuid())
+  resourceId    String
+  resource      CourseResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  text          String
+  optionA       String
+  optionB       String
+  optionC       String
+  correctAnswer String         // "A", "B", or "C"
+}
+
+model QuizAttempt {
+  id         String         @id @default(cuid())
+  studentId  String
+  student    Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resourceId String
+  resource   CourseResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  score      Int
+  passed     Boolean
+  createdAt  DateTime       @default(now())
 }
 
 model StudentProgress {

@@ -11,12 +11,17 @@ export default async function AdminResourcesPage() {
   }
 
   const resources = await prisma.courseResource.findMany({
-    orderBy: { orderIndex: 'asc' }
+    orderBy: { orderIndex: 'asc' },
+    include: { questions: true }
   });
 
   const rawStudents = await prisma.student.findMany({
     include: {
-      studentProgress: true
+      studentProgress: true,
+      quizAttempts: {
+        include: { resource: true },
+        orderBy: { createdAt: 'desc' }
+      }
     },
     orderBy: { name: 'asc' }
   });

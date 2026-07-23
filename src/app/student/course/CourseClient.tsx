@@ -1,18 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { markAsCompleted } from "./actions";
 import toast from "react-hot-toast";
-import { PlayCircle, CheckCircle2, Circle, FileText, Video, Image as ImageIcon, Headphones, ChevronRight, Loader2, Trophy } from "lucide-react";
+import { PlayCircle, CheckCircle2, Circle, FileText, Video, Image as ImageIcon, Headphones, ChevronRight, Loader2, Trophy, HelpCircle } from "lucide-react";
+import StudentQuizClient from "./StudentQuizClient";
 
-export default function CourseClient({ resources, completedIds: initialCompleted }: { resources: any[], completedIds: string[] }) {
+export default function CourseClient({ resources, completedIds: initialCompleted, quizAttempts = [] }: { resources: any[], completedIds: string[], quizAttempts?: any[] }) {
   const [completedIds, setCompletedIds] = useState<string[]>(initialCompleted);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
+  
+  // Timer for reading/watching normal resources (120s)
+  const [readTimer, setReadTimer] = useState(120);
 
   const activeResource = resources[currentIndex];
   const progressPercent = resources.length === 0 ? 0 : Math.round((completedIds.length / resources.length) * 100);
   const isAllDone = completedIds.length === resources.length && resources.length > 0;
+
+  useEffect(() => {
+    setReadTimer(120); // reset timer when changing resource
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (!activeResource) return;
+    if (activeResource.type === "Quiz") return; // Quiz has its own timer
+    if (completedIds.includes(activeResource.id)) return; // Already done
+    
+    if (readTimer > 0) {
+      const t = setInterval(() => setReadTimer(r => r - 1), 1000);
+      return () => clearInterval(t);
+    }
+  }, [activeResource, readTimer, completedIds]);
+
+  const formatReadTimer = (s: number) => {
+    const m = Math.floor(s/60);
+    const secs = s%60;
+    return `${m.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const getTypeIcon = (t: string, isActive: boolean, isCompleted: boolean) => {
     const colorClass = isCompleted ? "text-green-500" : isActive ? "text-[var(--theme-primary,var(--color-primary))]" : "text-gray-400";
@@ -20,7 +45,16 @@ export default function CourseClient({ resources, completedIds: initialCompleted
       case "Video": return <Video className={`w-5 h-5 ${colorClass}`} />;
       case "Audio": return <Headphones className={`w-5 h-5 ${colorClass}`} />;
       case "Photo": return <ImageIcon className={`w-5 h-5 ${colorClass}`} />;
+      case "Quiz": return <HelpCircle className={`w-5 h-5 ${colorClass}`} />;
       default: return <FileText className={`w-5 h-5 ${colorClass}`} />;
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex < resources.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      toast.success("Selamat! Anda telah menyelesaikan semua materi!", { icon: "🏆" });
     }
   };
 
@@ -40,13 +74,7 @@ export default function CourseClient({ resources, completedIds: initialCompleted
           return;
         }
       }
-
-      // Move to next
-      if (currentIndex < resources.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        toast.success("Selamat! Anda telah menyelesaikan semua materi!", { icon: "🏆" });
-      }
+      handleNext();
     } catch (error) {
       toast.error("Terjadi kesalahan jaringan");
     } finally {
@@ -100,7 +128,18 @@ export default function CourseClient({ resources, completedIds: initialCompleted
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main Content Area (Video/Embed) */}
         <div className="flex-1 flex flex-col gap-4">
-          {activeResource && (
+          {activeResource && activeResource.type === "Quiz" ? (
+            <StudentQuizClient 
+              resource={activeResource}
+              attempts={quizAttempts.filter(a => a.resourceId === activeResource.id)}
+              onNext={() => {
+                if (!completedIds.includes(activeResource.id)) {
+                  setCompletedIds([...completedIds, activeResource.id]);
+                }
+                handleNext();
+              }}
+            />
+          ) : activeResource && (
             <div className="card-soft overflow-hidden bg-white flex flex-col shadow-xl border-2 border-transparent hover:border-[var(--theme-primary,var(--color-primary))]/20 transition-all">
               {/* Google Drive Embed Iframe */}
               <div className="relative w-full pb-[56.25%] bg-gray-900 border-b border-gray-100">
@@ -132,12 +171,14 @@ export default function CourseClient({ resources, completedIds: initialCompleted
                   ) : (
                     <button 
                       onClick={handleMarkAsDone}
-                      disabled={isCompleting}
-                      className="w-full md:w-auto px-8 py-4 bg-[var(--theme-primary,var(--color-primary))] hover:opacity-90 text-white font-black rounded-2xl shadow-xl shadow-[var(--theme-primary,var(--color-primary))]/30 transition-all flex items-center justify-center gap-2 group transform hover:-translate-y-1"
+                      disabled={isCompleting || (!completedIds.includes(activeResource.id) && readTimer > 0)}
+                      className="w-full md:w-auto px-8 py-4 bg-[var(--theme-primary,var(--color-primary))] hover:opacity-90 text-white font-black rounded-2xl shadow-xl shadow-[var(--theme-primary,var(--color-primary))]/30 transition-all flex items-center justify-center gap-2 group transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       {isCompleting ? <Loader2 className="w-6 h-6 animate-spin" /> : 
-                       completedIds.includes(activeResource.id) ? "Lanjut Materi Berikutnya" : "Tandai Selesai & Lanjut"}
-                      {!isCompleting && <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />}
+                       completedIds.includes(activeResource.id) ? "Lanjut Materi Berikutnya" : 
+                       readTimer > 0 ? `⏳ Tunggu ${formatReadTimer(readTimer)}...` :
+                       "Tandai Selesai & Lanjut"}
+                      {!isCompleting && readTimer === 0 && <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />}
                     </button>
                   )}
                 </div>
@@ -181,7 +222,7 @@ export default function CourseClient({ resources, completedIds: initialCompleted
                         {getTypeIcon(res.type, isActive, isCompleted)}
                         <span className="text-xs font-semibold text-gray-500 uppercase">{res.type}</span>
                         <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs font-semibold text-gray-500">{res.durationMins}m</span>
+                        <span className="text-xs font-semibold text-gray-500">{res.type === "Quiz" ? "30m" : `${res.durationMins}m`}</span>
                       </div>
                     </div>
                   </button>
