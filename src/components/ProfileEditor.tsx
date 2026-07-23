@@ -158,7 +158,7 @@ export default function ProfileEditor({
             </h1>
             <button 
               onClick={() => setIsEditingName(true)}
-              className="p-1.5 text-gray-400 hover:text-[var(--theme-primary,var(--color-primary))] hover:bg-[var(--theme-primary,var(--color-primary))]/10 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+              className="p-1.5 text-gray-400 hover:text-[var(--theme-primary,var(--color-primary))] hover:bg-[var(--theme-primary,var(--color-primary))]/10 rounded-full transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
               title="Ganti Username Game"
             >
               <Edit2 className="w-5 h-5" />
