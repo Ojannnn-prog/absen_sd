@@ -37,6 +37,31 @@ export async function createResource(data: {
   }
 }
 
+export async function updateResource(id: string, data: {
+  title: string;
+  type: string;
+  description: string;
+  driveUrl: string;
+  durationMins: number;
+}) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "admin") return { success: false, message: "Unauthorized" };
+
+    await prisma.courseResource.update({
+      where: { id },
+      data
+    });
+
+    revalidatePath("/admin/resources");
+    revalidatePath("/student/course");
+    return { success: true };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: "Gagal memperbarui materi" };
+  }
+}
+
 export async function deleteResource(id: string) {
   try {
     const session = await getSession();

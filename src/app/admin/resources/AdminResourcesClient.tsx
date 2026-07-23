@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { createResource, deleteResource } from "./actions";
+import { createResource, deleteResource, updateResource } from "./actions";
 import toast from "react-hot-toast";
-import { Trash2, Plus, FileText, Video, Image as ImageIcon, Headphones, Loader2 } from "lucide-react";
+import { Trash2, Plus, FileText, Video, Image as ImageIcon, Headphones, Loader2, Edit2, Save } from "lucide-react";
 
 export default function AdminResourcesClient({ initialResources }: { initialResources: any[] }) {
   const [resources, setResources] = useState(initialResources);
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Form states
@@ -16,7 +17,26 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
   const [description, setDescription] = useState("");
   const [driveUrl, setDriveUrl] = useState("");
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setTitle("");
+    setType("Text");
+    setDescription("");
+    setDriveUrl("");
+    setIsAdding(false);
+    setEditingId(null);
+  };
+
+  const handleEditClick = (res: any) => {
+    setTitle(res.title);
+    setType(res.type);
+    setDescription(res.description || "");
+    setDriveUrl(res.driveUrl);
+    setEditingId(res.id);
+    setIsAdding(true); // Open the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !driveUrl) {
       toast.error("Judul dan Link Drive wajib diisi!");
@@ -30,25 +50,42 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
       formattedUrl = formattedUrl.replace('/view', '/preview');
     }
 
-    // Generate random duration between 5 to 30 mins based on type
+    // Generate random duration between 5 to 30 mins based on type if new, or keep logic simple for edit too
     const randomMins = type === 'Video' ? Math.floor(Math.random() * 20) + 10 : Math.floor(Math.random() * 10) + 5;
 
     try {
-      const res = await createResource({
-        title,
-        type,
-        description,
-        driveUrl: formattedUrl,
-        durationMins: randomMins
-      });
+      if (editingId) {
+        const res = await updateResource(editingId, {
+          title,
+          type,
+          description,
+          driveUrl: formattedUrl,
+          durationMins: randomMins // we can randomize again or keep it, random is fine for this scope
+        });
 
-      if (res.success) {
-        toast.success("Materi berhasil ditambahkan!");
-        setIsAdding(false);
-        // We do a full refresh to get the updated list from server
-        window.location.reload(); 
+        if (res.success) {
+          toast.success("Materi berhasil diperbarui!");
+          resetForm();
+          window.location.reload(); 
+        } else {
+          toast.error(res.message || "Gagal");
+        }
       } else {
-        toast.error(res.message || "Gagal");
+        const res = await createResource({
+          title,
+          type,
+          description,
+          driveUrl: formattedUrl,
+          durationMins: randomMins
+        });
+
+        if (res.success) {
+          toast.success("Materi berhasil ditambahkan!");
+          resetForm();
+          window.location.reload(); 
+        } else {
+          toast.error(res.message || "Gagal");
+        }
       }
     } catch (error) {
       toast.error("Terjadi kesalahan sistem");
@@ -96,10 +133,10 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
       ) : (
         <div className="card-soft p-6 border-2 border-primary/20">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-lg">Materi Baru</h3>
-            <button onClick={() => setIsAdding(false)} className="text-gray-400 hover:text-red-500 text-sm font-bold">Batal</button>
+            <h3 className="font-bold text-lg">{editingId ? 'Edit Materi' : 'Materi Baru'}</h3>
+            <button onClick={resetForm} className="text-gray-400 hover:text-red-500 text-sm font-bold">Batal</button>
           </div>
-          <form onSubmit={handleAdd} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Judul Materi</label>
@@ -153,10 +190,10 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
             <button 
               type="submit" 
               disabled={loading}
-              className="mt-2 py-3 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+              className={`mt-2 py-3 ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-primary hover:bg-primary-hover'} text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2`}
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-              Simpan Materi
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />)}
+              {editingId ? 'Simpan Perubahan' : 'Simpan Materi'}
             </button>
           </form>
         </div>
@@ -198,6 +235,13 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
               >
                 Cek Link
               </a>
+              <button 
+                onClick={() => handleEditClick(res)}
+                className="p-2 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-xl transition-colors"
+                title="Edit"
+              >
+                <Edit2 className="w-5 h-5" />
+              </button>
               <button 
                 onClick={() => handleDelete(res.id)}
                 className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
