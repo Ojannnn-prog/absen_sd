@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AuthNav from "@/components/AuthNav";
@@ -11,9 +11,22 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#4f46e5",
+};
+
 export const metadata: Metadata = {
-  title: "Sistem Absensi SD",
-  description: "Sistem Absensi QR Code Modern dan Interaktif",
+  title: "Absensi SDN 231 Sukaasih",
+  description: "Sistem absensi cerdas berbasis QR Code untuk SDN 231 Sukaasih",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Absensi 231",
+  },
+  formatDetection: {
+    telephone: false,
+  }
 };
 
 export default async function RootLayout({
