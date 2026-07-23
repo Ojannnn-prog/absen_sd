@@ -2,9 +2,11 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import StudentQR from "@/components/StudentQR";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
+import ProfileEditor from "@/components/ProfileEditor";
+import ThemeShop from "@/components/ThemeShop";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { History, UserCircle2 } from "lucide-react";
+import { History, Crown, Medal, Flame } from "lucide-react";
 import { redirect } from "next/navigation";
 
 export default async function StudentDashboard() {
@@ -27,20 +29,62 @@ export default async function StudentDashboard() {
     redirect("/login");
   }
 
+  const presentCount = student.attendances.filter(a => a.status === 'Hadir').length;
+  const isProPlayer = presentCount > 3;
+  const currentPoints = (presentCount * 10) - student.spentPoints;
+
+  // Dicebear avatar as fallback
   const encodedName = encodeURIComponent(student.name);
   const avatarBg = student.gender === 'L' ? 'e0f2fe' : 'fce7f3';
-  const avatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=${avatarBg}`;
+  const defaultAvatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=${avatarBg}`;
+  
+  const avatarUrl = student.profileImage || defaultAvatarUrl;
 
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in duration-500">
-      {/* Header Info Siswa */}
-      <div className="card-soft p-6 flex flex-col md:flex-row items-center md:items-start gap-6 bg-gradient-to-r from-white to-blue-50/50">
-        <img src={avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full shadow-md border-4 border-white" />
-        <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start">
-          <h1 className="text-2xl font-extrabold text-text-header">{student.name}</h1>
-          <p className="text-primary font-medium">{student.studentCode}</p>
-          <div className="mt-3 inline-flex px-3 py-1 bg-white border border-gray-100 rounded-full text-sm text-gray-600 shadow-sm">
-            Total Kehadiran: <span className="font-bold text-gray-900 ml-1">{student.attendances.filter(a => a.status === 'Hadir').length} Hari</span>
+    <div className={`theme-${student.activeTheme} flex flex-col gap-8 animate-in fade-in duration-500`}>
+      {/* Gamification Header */}
+      <div className="card-soft p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-8 bg-gradient-to-r from-white to-[var(--theme-primary,var(--color-primary))]/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-2 border-transparent transition-all hover:border-[var(--theme-primary,var(--color-primary))]/20 relative overflow-hidden">
+        
+        {/* Decorative Background Glow */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--theme-primary,var(--color-primary))] opacity-5 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="relative">
+          <img 
+            src={avatarUrl} 
+            alt="Avatar" 
+            className={`w-32 h-32 md:w-40 md:h-40 rounded-[2rem] object-cover shadow-xl border-4 ${isProPlayer ? 'border-yellow-400' : 'border-white'}`} 
+          />
+          {isProPlayer && (
+            <div className="absolute -top-4 -right-4 bg-gradient-to-br from-yellow-300 to-yellow-500 p-2.5 rounded-2xl shadow-lg transform rotate-12 hover:rotate-0 transition-transform cursor-help" title="Player Aktif!">
+              <Crown className="w-8 h-8 text-white drop-shadow-md" />
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start z-10 w-full">
+          {/* Level Badge */}
+          <div className="mb-3">
+            {isProPlayer ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black rounded-full shadow-md uppercase tracking-wider">
+                <Flame className="w-3.5 h-3.5" /> Player Aktif
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded-full shadow-inner uppercase tracking-wider">
+                <Medal className="w-3.5 h-3.5" /> Newbie
+              </span>
+            )}
+          </div>
+
+          <ProfileEditor initialNickname={student.nickname} studentName={student.name} />
+
+          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
+            <div className="inline-flex px-4 py-2 bg-white border-2 border-gray-100 rounded-xl text-sm shadow-sm">
+              <span className="text-gray-500 mr-2 font-medium">Hadir:</span>
+              <span className="font-black text-gray-900">{presentCount} Hari</span>
+            </div>
+            <div className="inline-flex px-4 py-2 bg-[var(--theme-primary,var(--color-primary))] text-white rounded-xl text-sm font-bold shadow-md shadow-[var(--theme-primary,var(--color-primary))]/20">
+              💎 {currentPoints} Poin
+            </div>
           </div>
           
           <div className="mt-6 w-full max-w-[250px]">
@@ -48,39 +92,47 @@ export default async function StudentDashboard() {
           </div>
         </div>
         
-        {/* QR Code */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Kartu Absensi Anda</p>
+        {/* QR Code Card */}
+        <div className="bg-white p-5 rounded-[2rem] shadow-xl border-4 border-gray-50 flex flex-col items-center relative z-10 hover:-translate-y-2 transition-transform duration-300">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Login QR Card</p>
           <StudentQR studentCode={student.studentCode} name={student.name} />
+          <p className="text-xs font-mono font-bold text-gray-500 mt-3">{student.studentCode}</p>
         </div>
       </div>
 
+      {/* Theme Shop */}
+      <ThemeShop 
+        currentPoints={currentPoints}
+        unlockedThemes={student.unlockedThemes}
+        activeTheme={student.activeTheme}
+      />
+
       {/* Riwayat Absensi */}
-      <div className="card-soft p-6">
-        <h2 className="text-xl font-bold text-text-header flex items-center gap-2 mb-6">
-          <History className="w-5 h-5 text-primary" />
+      <div className="card-soft p-6 md:p-8">
+        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+          <History className="w-6 h-6 text-[var(--theme-primary,var(--color-primary))]" />
           Riwayat Kehadiran Terakhir
         </h2>
         
         {student.attendances.length === 0 ? (
-          <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
             Belum ada riwayat absensi.
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {student.attendances.map((att) => (
-              <div key={att.id} className="flex justify-between items-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div key={att.id} className="flex justify-between items-center p-4 bg-white border-2 border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
                 <div className="flex items-center gap-4">
-                  <div className={`w-2 h-12 rounded-full ${
+                  <div className={`w-3 h-12 rounded-full ${
                     att.status === 'Hadir' ? 'bg-green-400' :
                     att.status === 'Izin' ? 'bg-yellow-400' : 'bg-red-400'
-                  }`}></div>
+                  } group-hover:scale-y-110 transition-transform`}></div>
                   <div>
                     <p className="font-bold text-gray-900">{format(att.timestamp, "EEEE, dd MMMM yyyy", { locale: localeId })}</p>
-                    <p className="text-sm text-gray-500">{format(att.timestamp, "HH:mm 'WIB'", { locale: localeId })}</p>
+                    <p className="text-sm font-medium text-gray-500">{format(att.timestamp, "HH:mm 'WIB'", { locale: localeId })}</p>
                   </div>
                 </div>
-                <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${
+                <div className={`px-4 py-1.5 rounded-xl text-sm font-black uppercase tracking-wider ${
                   att.status === 'Hadir' ? 'bg-green-100 text-green-700' :
                   att.status === 'Izin' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                 }`}>

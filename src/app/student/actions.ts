@@ -28,3 +28,85 @@ export async function updateStudentPassword(newPassword: string) {
     return { success: false, message: "Terjadi kesalahan pada server." };
   }
 }
+
+export async function updateProfile(nickname: string | null, profileImage: string | null) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "student") return { success: false, message: "Unauthorized" };
+
+    const updateData: any = {};
+    if (nickname !== undefined) updateData.nickname = nickname;
+    if (profileImage !== undefined) updateData.profileImage = profileImage;
+
+    await prisma.student.update({
+      where: { id: session.id },
+      data: updateData
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return { success: false, message: "Terjadi kesalahan" };
+  }
+}
+
+export async function buyTheme(themeId: string, price: number) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "student") return { success: false, message: "Unauthorized" };
+
+    const student = await prisma.student.findUnique({
+      where: { id: session.id },
+      include: { attendances: true }
+    });
+
+    if (!student) return { success: false, message: "User not found" };
+
+    const totalPoints = (student.attendances.length * 10) - student.spentPoints;
+
+    if (totalPoints < price) {
+      return { success: false, message: "Poin tidak cukup!" };
+    }
+
+    if (student.unlockedThemes.includes(themeId)) {
+      return { success: false, message: "Tema sudah dibeli" };
+    }
+
+    await prisma.student.update({
+      where: { id: session.id },
+      data: {
+        spentPoints: { increment: price },
+        unlockedThemes: { push: themeId },
+        activeTheme: themeId // Langsung pakai setelah dibeli
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error buying theme:", error);
+    return { success: false, message: "Gagal membeli tema" };
+  }
+}
+
+export async function equipTheme(themeId: string) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "student") return { success: false, message: "Unauthorized" };
+
+    const student = await prisma.student.findUnique({ where: { id: session.id } });
+    
+    if (!student?.unlockedThemes.includes(themeId)) {
+      return { success: false, message: "Anda belum memiliki tema ini" };
+    }
+
+    await prisma.student.update({
+      where: { id: session.id },
+      data: { activeTheme: themeId }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error equip theme:", error);
+    return { success: false, message: "Gagal memakai tema" };
+  }
+}

@@ -53,3 +53,28 @@ body {
     transform: translateY(-1px);
   }
 }
+
+/* === GAMIFICATION THEMES === */
+.theme-default {
+  --theme-primary: var(--color-primary);
+  --theme-primary-hover: var(--color-primary-hover);
+  --theme-bg-soft: #eff6ff;
+}
+
+.theme-pink {
+  --theme-primary: #ec4899;
+  --theme-primary-hover: #db2777;
+  --theme-bg-soft: #fdf2f8;
+}
+
+.theme-green {
+  --theme-primary: #10b981;
+  --theme-primary-hover: #059669;
+  --theme-bg-soft: #ecfdf5;
+}
+
+.theme-gold {
+  --theme-primary: #eab308;
+  --theme-primary-hover: #ca8a04;
+  --theme-bg-soft: #fefce8;
+}

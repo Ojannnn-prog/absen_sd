@@ -22,10 +22,15 @@ model Student {
   birthPlace  String?
   birthDate   DateTime?
   studentCode String       @unique // Format: 2312026xxx
-  username    String       @unique
-  password    String
-  attendances Attendance[]
-  createdAt   DateTime     @default(now())
+  username       String       @unique
+  password       String
+  profileImage   String?      // Base64 string for avatar
+  nickname       String?      // Gamertag/Display name
+  spentPoints    Int          @default(0)
+  activeTheme    String       @default("default")
+  unlockedThemes String[]     @default(["default"])
+  attendances    Attendance[]
+  createdAt      DateTime     @default(now())
 }
 
 model Attendance {
