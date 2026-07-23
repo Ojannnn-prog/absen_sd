@@ -69,7 +69,7 @@ export default function CourseClient({ resources, completedIds: initialCompleted
   return (
     <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-10">
       {/* Header & Progress Bar */}
-      <div className="card-soft p-5 bg-white flex flex-col gap-4 sticky top-20 z-30">
+      <div className="card-soft p-5 bg-white flex flex-col gap-4 lg:sticky lg:top-20 z-30">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
@@ -148,7 +148,7 @@ export default function CourseClient({ resources, completedIds: initialCompleted
 
         {/* Sidebar Playlist */}
         <div className="w-full lg:w-96 flex-shrink-0">
-          <div className="card-soft p-4 bg-white sticky top-48 max-h-[calc(100vh-12rem)] overflow-y-auto custom-scrollbar">
+          <div className="card-soft p-4 bg-white lg:sticky lg:top-48 max-h-[calc(100vh-12rem)] overflow-y-auto custom-scrollbar">
             <h3 className="font-extrabold text-gray-900 mb-4 px-2">Daftar Materi</h3>
             <div className="flex flex-col gap-2">
               {resources.map((res, idx) => {
