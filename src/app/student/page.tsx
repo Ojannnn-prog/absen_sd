@@ -156,9 +156,6 @@ export default async function StudentDashboard() {
         activeTheme={student.activeTheme}
       />
 
-      {/* Leaderboard */}
-      <LeaderboardView />
-
       {/* Riwayat Nilai Ujian */}
       <div className="card-soft p-6 md:p-8">
         <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
