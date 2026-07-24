@@ -78,21 +78,21 @@ export default function StudentKTACard({ student }: Props) {
 
   const KtaContent = () => (
     <>
-      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-black to-transparent bg-[length:20px_20px]"></div>
+      <div className="absolute inset-0 bg-[#f8fafc]"></div>
 
-      <div className="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-r from-blue-600 to-indigo-700 rounded-b-[40px] shadow-md flex items-center px-8 z-10">
+      <div className="absolute top-0 left-0 w-full h-[80px] bg-blue-700 shadow-md flex items-center px-8 z-10" style={{ borderBottomLeftRadius: '40px', borderBottomRightRadius: '40px' }}>
         <div className="flex-1">
           <h1 className="text-white font-black text-2xl tracking-wider drop-shadow-md">SDN 231 SUKAASIH</h1>
           <p className="text-blue-100 font-bold text-sm tracking-widest uppercase opacity-90">Kartu Tanda Anggota</p>
         </div>
-        <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 shadow-inner">
-          <BookIcon className="w-7 h-7 text-white drop-shadow-sm" />
+        <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/40 shadow-inner">
+          <BookIcon style={{ width: '28px', height: '28px' }} className="text-white drop-shadow-sm" />
         </div>
       </div>
 
       <div className="absolute top-[100px] left-8 right-8 flex gap-6 z-20">
         <div className="flex-1 flex flex-col pt-1 min-w-0">
-          <h2 className="text-[24px] font-black text-gray-900 leading-[1.2] mb-2 drop-shadow-sm pr-4 break-words whitespace-normal text-wrap max-h-[60px] overflow-hidden">
+          <h2 className="text-[24px] font-black text-gray-900 leading-[1.2] mb-2 drop-shadow-sm pr-4 whitespace-normal" style={{ wordBreak: 'break-word', maxHeight: '60px', overflow: 'hidden' }}>
             {student.name}
           </h2>
           <div className="w-16 h-1 bg-yellow-400 rounded-full mb-4 shrink-0"></div>
@@ -127,7 +127,7 @@ export default function StudentKTACard({ student }: Props) {
         )}
       </div>
       
-      <div className="absolute bottom-0 right-0 w-[200px] h-[200px] bg-blue-600/5 rounded-tl-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[200px] h-[200px] bg-blue-50" style={{ borderTopLeftRadius: '200px' }} />
     </>
   );
 
