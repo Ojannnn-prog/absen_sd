@@ -63,22 +63,24 @@ export default function StudentKTACard({ student }: Props) {
       
       // Student Name
       pdf.setTextColor(15, 23, 42);
-      pdf.setFontSize(14);
+      pdf.setFontSize(10.5); // Kecilkan font nama
       pdf.setFont("helvetica", "bold");
-      pdf.text(student.name.substring(0, 35), 4, 21);
+      // Batasi panjang nama agar tidak menabrak QR Code
+      const shortName = student.name.length > 28 ? student.name.substring(0, 28) + '...' : student.name;
+      pdf.text(shortName, 4, 19);
       
       // Yellow Line
       pdf.setFillColor(250, 204, 21);
-      pdf.rect(4, 23, 12, 0.8, 'F');
+      pdf.rect(4, 22, 12, 0.8, 'F');
       
       // NIS
       pdf.setFontSize(4.5);
       pdf.setTextColor(148, 163, 184);
       pdf.setFont("helvetica", "bold");
-      pdf.text("NOMOR INDUK SISWA (NIS)", 4, 28);
+      pdf.text("NOMOR INDUK SISWA (NIS)", 4, 27);
       pdf.setFontSize(10);
       pdf.setTextColor(30, 41, 59);
-      pdf.text(student.studentCode, 4, 32);
+      pdf.text(student.studentCode, 4, 31);
       
       const formatDatePDF = (date: Date | string | null) => {
         if (!date) return "-";
@@ -89,31 +91,32 @@ export default function StudentKTACard({ student }: Props) {
       // TTL
       pdf.setFontSize(4.5);
       pdf.setTextColor(148, 163, 184);
-      pdf.text("TEMPAT, TGL LAHIR", 4, 38);
-      pdf.setFontSize(7);
+      pdf.text("TEMPAT, TGL LAHIR", 4, 37);
+      pdf.setFontSize(6.5);
       pdf.setTextColor(51, 65, 85);
-      pdf.text(`${student.birthPlace || "-"}, ${formatDatePDF(student.birthDate)}`, 4, 41);
+      pdf.text(`${student.birthPlace || "-"}, ${formatDatePDF(student.birthDate)}`, 4, 40);
       
       // Gender
       pdf.setFontSize(4.5);
       pdf.setTextColor(148, 163, 184);
-      pdf.text("GENDER", 45, 38);
-      pdf.setFontSize(7);
+      pdf.text("GENDER", 45, 37);
+      pdf.setFontSize(6.5);
       pdf.setTextColor(51, 65, 85);
-      pdf.text(student.gender === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN', 45, 41);
+      pdf.text(student.gender === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN', 45, 40);
       
       // Active Badge
       pdf.setFillColor(37, 99, 235);
-      pdf.roundedRect(4, 46, 16, 4, 1, 1, 'F');
+      pdf.roundedRect(4, 45, 16, 4, 1, 1, 'F');
       pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(5);
-      pdf.text("SISWA AKTIF", 12, 48.6, { align: "center" });
+      pdf.setFontSize(4.5);
+      pdf.text("SISWA AKTIF", 12, 47.6, { align: "center" });
 
       // QR Code
       if (qrCodeUrl) {
         pdf.setFillColor(255, 255, 255);
-        pdf.roundedRect(63, 18, 18, 18, 1, 1, 'F');
-        pdf.addImage(qrCodeUrl, "PNG", 64, 19, 16, 16);
+        // Turunkan Y dari 18 ke 25 agar tidak menabrak nama
+        pdf.roundedRect(63, 25, 18, 18, 1, 1, 'F');
+        pdf.addImage(qrCodeUrl, "PNG", 64, 26, 16, 16);
       }
 
       pdf.save(`KTA_${student.name.replace(/\s+/g, '_')}_${student.studentCode}.pdf`);
@@ -148,11 +151,11 @@ export default function StudentKTACard({ student }: Props) {
       </div>
 
       <div className="absolute top-[100px] left-8 right-8 flex gap-6 z-20">
-        <div className="flex-1 flex flex-col pt-1 min-w-0">
-          <h2 className="text-[24px] font-black text-gray-900 leading-[1.2] mb-2 drop-shadow-sm pr-4 whitespace-normal" style={{ wordBreak: 'break-word', maxHeight: '60px', overflow: 'hidden' }}>
+        <div className="flex-1 flex flex-col pt-1 min-w-0 pr-16">
+          <h2 className="text-[20px] font-black text-gray-900 leading-[1.2] mb-2 drop-shadow-sm whitespace-normal" style={{ wordBreak: 'break-word', maxHeight: '50px', overflow: 'hidden' }}>
             {student.name}
           </h2>
-          <div className="w-16 h-1 bg-yellow-400 rounded-full mb-4 shrink-0"></div>
+          <div className="w-16 h-1 bg-yellow-400 rounded-full mb-3 shrink-0"></div>
 
           <div className="flex flex-col gap-3 w-full shrink-0">
             <div className="flex flex-col">
@@ -178,9 +181,9 @@ export default function StudentKTACard({ student }: Props) {
         </div>
       </div>
 
-      <div className="absolute bottom-6 right-8 bg-white p-2 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center z-20">
+      <div className="absolute bottom-4 right-8 bg-white p-1.5 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center z-20">
         {qrCodeUrl && (
-          <img src={qrCodeUrl} alt="QR Code" className="w-[60px] h-[60px]" crossOrigin="anonymous" />
+          <img src={qrCodeUrl} alt="QR Code" className="w-[54px] h-[54px]" crossOrigin="anonymous" />
         )}
       </div>
       
