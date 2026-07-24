@@ -22,6 +22,8 @@ export default function StudentKTACard({ student }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
+  const [safeAvatarUrl, setSafeAvatarUrl] = useState<string>("");
+
   useEffect(() => {
     // Generate QR Code once on mount
     QRCode.toDataURL(student.studentCode, {
@@ -29,7 +31,22 @@ export default function StudentKTACard({ student }: Props) {
       margin: 1,
       color: { dark: "#0f172a", light: "#ffffff" }
     }).then(setQrCodeUrl).catch(console.error);
-  }, [student.studentCode]);
+
+    // Pre-fetch avatar to base64 to avoid CORS taint in html2canvas
+    const encodedName = encodeURIComponent(student.name);
+    const avatarBg = student.gender === 'L' ? 'e0f2fe' : 'fce7f3';
+    const defaultUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=${avatarBg}`;
+    const initialUrl = student.profileImage || defaultUrl;
+
+    fetch(initialUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => setSafeAvatarUrl(reader.result as string);
+        reader.readAsDataURL(blob);
+      })
+      .catch(() => setSafeAvatarUrl(initialUrl)); // fallback
+  }, [student.studentCode, student.name, student.gender, student.profileImage]);
 
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
@@ -38,10 +55,6 @@ export default function StudentKTACard({ student }: Props) {
     try {
       // Brief delay to ensure styles and fonts are fully painted
       await new Promise((resolve) => setTimeout(resolve, 300));
-      
-      // Temporarily remove border radius for perfect edge-to-edge PDF if we want it,
-      // but it looks better with rounded corners inside the PDF or just let it have white corners.
-      // Usually, print cards have square corners which are die-cut later. We'll leave it as is.
       
       const canvas = await html2canvas(cardRef.current, {
         scale: 4, // Very high resolution for printing
@@ -59,7 +72,7 @@ export default function StudentKTACard({ student }: Props) {
       });
 
       pdf.addImage(imgData, "PNG", 0, 0, 85.6, 53.98);
-      pdf.save(`KTA_${student.name.replace(/\s+/g, '_')}_${student.studentCode}.pdf`);
+      pdf.save(`KTA_${student.name.replace(/\\s+/g, '_')}_${student.studentCode}.pdf`);
       
     } catch (error) {
       console.error("Failed to generate KTA PDF:", error);
@@ -75,11 +88,6 @@ export default function StudentKTACard({ student }: Props) {
     return d.toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
-  const encodedName = encodeURIComponent(student.name);
-  const avatarBg = student.gender === 'L' ? 'e0f2fe' : 'fce7f3';
-  const defaultAvatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=${avatarBg}`;
-  const avatarUrl = student.profileImage || defaultAvatarUrl;
-
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="w-full flex justify-between items-center mb-2">
@@ -89,36 +97,30 @@ export default function StudentKTACard({ student }: Props) {
         </h3>
         <button
           onClick={handleDownloadPDF}
-          disabled={isGenerating}
+          disabled={isGenerating || !safeAvatarUrl}
           className="bg-[var(--theme-primary,var(--color-primary))] hover:opacity-90 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait"
         >
-          {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          {isGenerating || !safeAvatarUrl ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           {isGenerating ? "Mencetak..." : "Cetak PDF"}
         </button>
       </div>
 
-      {/* The actual Card (hidden overflow to render cleanly) */}
-      {/* We use a specific aspect ratio container (85.6 / 53.98 = 1.585) 
-          Base size: width 400px, height 252px */}
       <div 
         className="relative w-[340px] h-[214px] sm:w-[400px] sm:h-[252px] shadow-2xl rounded-2xl overflow-hidden shrink-0 group transition-transform hover:scale-[1.02]"
       >
-        {/* The target for html2canvas. We keep it unscaled inside so the resolution is stable. 
-            We force it to exactly 600px x 378px to ensure high quality rendering, and use CSS transform to scale it down to fit the wrapper. */}
         <div 
           ref={cardRef}
-          className="absolute top-0 left-0 w-[600px] h-[378px] bg-white origin-top-left scale-[0.5666] sm:scale-[0.6666]"
-          style={{
-            backgroundImage: "url('data:image/svg+xml;utf8,<svg width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"dots\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><circle cx=\"2\" cy=\"2\" r=\"1.5\" fill=\"%23e2e8f0\"/></pattern></defs><rect width=\"100%\" height=\"100%\" fill=\"url(%23dots)\"/></svg>')",
-          }}
+          className="absolute top-0 left-0 w-[600px] h-[378px] bg-gray-50 origin-top-left scale-[0.5666] sm:scale-[0.6666]"
         >
+          {/* Decorative background instead of SVG */}
+          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-black to-transparent bg-[length:20px_20px]"></div>
+
           {/* Header */}
           <div className="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-r from-blue-600 to-indigo-700 rounded-b-[40px] shadow-md flex items-center px-8 z-10">
             <div className="flex-1">
               <h1 className="text-white font-black text-2xl tracking-wider drop-shadow-md">SDN 231 SUKAASIH</h1>
               <p className="text-blue-100 font-bold text-sm tracking-widest uppercase opacity-90">Kartu Tanda Anggota</p>
             </div>
-            {/* Pseudo Logo */}
             <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 shadow-inner">
               <BookIcon className="w-7 h-7 text-white drop-shadow-sm" />
             </div>
@@ -128,9 +130,12 @@ export default function StudentKTACard({ student }: Props) {
           <div className="absolute top-[100px] left-8 right-8 flex gap-6 z-20">
             {/* Photo Left */}
             <div className="flex flex-col gap-2 items-center w-[120px] shrink-0">
-              <div className="w-[110px] h-[140px] bg-gray-100 rounded-xl overflow-hidden shadow-lg border-4 border-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={avatarUrl} alt={student.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
+              <div className="w-[110px] h-[140px] bg-white rounded-xl overflow-hidden shadow-lg border-4 border-white flex items-center justify-center">
+                {safeAvatarUrl ? (
+                  <img src={safeAvatarUrl} alt={student.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
+                ) : (
+                  <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
+                )}
               </div>
               <div className="bg-blue-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-sm w-full text-center tracking-wider">
                 Siswa Aktif
@@ -139,10 +144,10 @@ export default function StudentKTACard({ student }: Props) {
 
             {/* Details Right */}
             <div className="flex-1 flex flex-col pt-1">
-              <h2 className="text-3xl font-black text-gray-900 leading-none mb-1 drop-shadow-sm truncate pr-4">
+              <h2 className="text-[22px] font-black text-gray-900 leading-[1.1] mb-2 drop-shadow-sm pr-4 line-clamp-2 break-words">
                 {student.name}
               </h2>
-              <div className="w-12 h-1 bg-yellow-400 rounded-full mb-4"></div>
+              <div className="w-12 h-1 bg-yellow-400 rounded-full mb-3"></div>
 
               <div className="flex flex-col gap-2.5 w-full">
                 <div className="flex flex-col">
