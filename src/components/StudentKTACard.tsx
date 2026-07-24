@@ -24,8 +24,6 @@ export default function StudentKTACard({ student }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
-  const [safeAvatarUrl, setSafeAvatarUrl] = useState<string>("");
-
   useEffect(() => {
     // Generate QR Code once on mount
     QRCode.toDataURL(student.studentCode, {
@@ -33,22 +31,7 @@ export default function StudentKTACard({ student }: Props) {
       margin: 1,
       color: { dark: "#0f172a", light: "#ffffff" }
     }).then(setQrCodeUrl).catch(console.error);
-
-    // Pre-fetch avatar to base64 to avoid CORS taint in html2canvas
-    const encodedName = encodeURIComponent(student.name);
-    const avatarBg = student.gender === 'L' ? 'e0f2fe' : 'fce7f3';
-    const defaultUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=${avatarBg}`;
-    const initialUrl = student.profileImage || defaultUrl;
-
-    fetch(initialUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        const reader = new FileReader();
-        reader.onloadend = () => setSafeAvatarUrl(reader.result as string);
-        reader.readAsDataURL(blob);
-      })
-      .catch(() => setSafeAvatarUrl(initialUrl)); // fallback
-  }, [student.studentCode, student.name, student.gender, student.profileImage]);
+  }, [student.studentCode]);
 
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
@@ -62,7 +45,6 @@ export default function StudentKTACard({ student }: Props) {
       const canvas = await html2canvas(cardRef.current, {
         scale: 4, // Very high resolution for printing
         useCORS: true, 
-        allowTaint: true, // Kadang dicebear dianggap taint meski CORS true
         backgroundColor: "#ffffff",
         logging: false, // Matikan log agar tidak nyampah di console
       });
@@ -109,32 +91,19 @@ export default function StudentKTACard({ student }: Props) {
       </div>
 
       <div className="absolute top-[100px] left-8 right-8 flex gap-6 z-20">
-        <div className="flex flex-col gap-2 items-center w-[120px] shrink-0">
-          <div className="w-[110px] h-[140px] bg-white rounded-xl overflow-hidden shadow-lg border-4 border-white flex items-center justify-center">
-            {safeAvatarUrl ? (
-              <img src={safeAvatarUrl} alt={student.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
-            ) : (
-              <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
-            )}
-          </div>
-          <div className="bg-blue-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-sm w-full text-center tracking-wider">
-            Siswa Aktif
-          </div>
-        </div>
-
         <div className="flex-1 flex flex-col pt-1 min-w-0">
-          <h2 className="text-[20px] font-black text-gray-900 leading-[1.2] mb-2 drop-shadow-sm pr-4 break-words whitespace-normal text-wrap max-h-[50px] overflow-hidden">
+          <h2 className="text-[24px] font-black text-gray-900 leading-[1.2] mb-2 drop-shadow-sm pr-4 break-words whitespace-normal text-wrap max-h-[60px] overflow-hidden">
             {student.name}
           </h2>
-          <div className="w-12 h-1 bg-yellow-400 rounded-full mb-3 shrink-0"></div>
+          <div className="w-16 h-1 bg-yellow-400 rounded-full mb-4 shrink-0"></div>
 
-          <div className="flex flex-col gap-2.5 w-full shrink-0">
+          <div className="flex flex-col gap-3 w-full shrink-0">
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nomor Induk Siswa (NIS)</span>
-              <span className="text-lg font-black text-gray-800 font-mono tracking-wider">{student.studentCode}</span>
+              <span className="text-xl font-black text-gray-800 font-mono tracking-wider">{student.studentCode}</span>
             </div>
             
-            <div className="flex gap-8">
+            <div className="flex gap-10">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tempat, Tgl Lahir</span>
                 <span className="text-sm font-bold text-gray-700">{student.birthPlace || "-"}, {formatDate(student.birthDate)}</span>
@@ -144,6 +113,10 @@ export default function StudentKTACard({ student }: Props) {
                 <span className="text-sm font-bold text-gray-700">{student.gender === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN'}</span>
               </div>
             </div>
+          </div>
+          
+          <div className="mt-4 bg-blue-600 text-white text-[10px] font-black uppercase px-4 py-1.5 rounded-full shadow-sm w-fit tracking-wider">
+            Siswa Aktif
           </div>
         </div>
       </div>
@@ -167,10 +140,10 @@ export default function StudentKTACard({ student }: Props) {
         </h3>
         <button
           onClick={handleDownloadPDF}
-          disabled={isGenerating || !safeAvatarUrl}
+          disabled={isGenerating}
           className="bg-[var(--theme-primary,var(--color-primary))] hover:opacity-90 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait"
         >
-          {isGenerating || !safeAvatarUrl ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           {isGenerating ? "Mencetak..." : "Cetak PDF"}
         </button>
       </div>
