@@ -38,7 +38,7 @@ export default function ChangePasswordModal() {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-bold rounded-xl transition-all shadow-sm"
+        className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-bold rounded-xl transition-all shadow-sm"
       >
         <KeyRound className="w-5 h-5 text-gray-500" />
         Ubah Password

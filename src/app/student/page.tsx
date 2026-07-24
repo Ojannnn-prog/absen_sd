@@ -107,7 +107,7 @@ export default async function StudentDashboard() {
             </div>
           </div>
           
-          <div className="mt-6 flex flex-wrap justify-center md:justify-start gap-3 w-full">
+          <div className="mt-6 flex flex-col sm:flex-row justify-center md:justify-start gap-3 w-full">
             <ChangePasswordModal />
             <StudentReportButton 
               student={student} 

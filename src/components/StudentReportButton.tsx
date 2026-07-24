@@ -112,7 +112,7 @@ export default function StudentReportButton({ student, totalScore, levelInfo }: 
     <button 
       onClick={generatePDF}
       disabled={loading}
-      className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl transition-colors border border-indigo-200 shadow-sm disabled:opacity-70"
+      className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl transition-colors border border-indigo-200 shadow-sm disabled:opacity-70"
     >
       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
       Cetak Rapor (PDF)

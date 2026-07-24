@@ -128,7 +128,7 @@ export default function ProfileEditor({
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               placeholder="Ketik Username Game..."
-              className="px-3 py-1.5 border-2 border-[var(--theme-primary,var(--color-primary))] rounded-lg focus:outline-none font-bold text-gray-900 w-48"
+              className="px-3 py-1.5 border-2 border-[var(--theme-primary,var(--color-primary))] rounded-lg focus:outline-none font-bold text-gray-900 w-32 sm:w-48"
               maxLength={15}
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}
@@ -175,7 +175,7 @@ export default function ProfileEditor({
       <button 
         onClick={() => fileInputRef.current?.click()}
         disabled={isSaving}
-        className="mt-4 px-4 py-2 bg-white border border-gray-200 shadow-sm rounded-xl text-sm font-bold text-gray-700 flex items-center gap-2 hover:border-[var(--theme-primary,var(--color-primary))] hover:text-[var(--theme-primary,var(--color-primary))] transition-all"
+        className="mt-4 px-4 py-2 bg-white border border-gray-200 shadow-sm rounded-xl text-sm font-bold text-gray-700 flex items-center justify-center gap-2 hover:border-[var(--theme-primary,var(--color-primary))] hover:text-[var(--theme-primary,var(--color-primary))] transition-all w-full md:w-auto"
       >
         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
         Ganti Foto Profil

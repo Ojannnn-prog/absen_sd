@@ -96,7 +96,7 @@ export default function AdminReportButton({ students }: Props) {
     <button 
       onClick={generatePDF}
       disabled={loading}
-      className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all disabled:opacity-70 flex-shrink-0"
+      className="w-full md:w-auto justify-center inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all disabled:opacity-70 flex-shrink-0"
     >
       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
       <span className="hidden sm:inline">Cetak Rekap (PDF)</span>
