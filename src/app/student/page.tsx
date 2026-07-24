@@ -4,6 +4,7 @@ import StudentQR from "@/components/StudentQR";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
 import ProfileEditor from "@/components/ProfileEditor";
 import ThemeShop from "@/components/ThemeShop";
+import StudentKTACard from "@/components/StudentKTACard";
 import { format, addHours } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { History, Crown, Medal, Flame, Award, CheckCircle2, XCircle } from "lucide-react";
@@ -102,6 +103,18 @@ export default async function StudentDashboard() {
           <StudentQR studentCode={student.studentCode} name={student.name} />
           <p className="text-xs font-mono font-bold text-gray-500 mt-3">{student.studentCode}</p>
         </div>
+      </div>
+
+      {/* KTA Card Section */}
+      <div className="card-soft p-6 md:p-8 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm border border-gray-100">
+        <StudentKTACard student={{
+          name: student.name,
+          studentCode: student.studentCode,
+          birthPlace: student.birthPlace,
+          birthDate: student.birthDate,
+          gender: student.gender,
+          profileImage: student.profileImage
+        }} />
       </div>
 
       {/* Theme Shop */}

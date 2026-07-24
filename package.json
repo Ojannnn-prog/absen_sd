@@ -16,6 +16,7 @@
     "@types/ws": "^8.18.1",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.4.0",
+    "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "jose": "^6.2.4",
     "jspdf": "^4.2.1",
