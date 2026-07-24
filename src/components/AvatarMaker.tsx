@@ -5,11 +5,11 @@ import { Save, RefreshCw, Sparkles, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const OPTIONS = {
-  top: ["longHairBob", "shortHairShortCurly", "shortHairShortFlat", "shortHairShortRound", "shortHairShortWaved", "shortHairSides", "hijab", "turban", "winterHat1"],
+  top: ["bob", "bun", "curly", "dreads", "shaggy", "shortCurly", "shortFlat", "shortRound", "shortWaved", "theCaesar", "hijab", "turban", "winterHat1"],
   accessories: ["blank", "prescription01", "prescription02", "round", "sunglasses", "wayfarers"],
   clothing: ["blazerAndShirt", "blazerAndSweater", "collarAndSweater", "graphicShirt", "hoodie", "overall"],
-  skinColor: ["tanned", "yellow", "pale", "light", "brown", "darkBrown", "black"],
-  mouth: ["default", "smile", "twinkle", "serious", "surprised"],
+  skinColor: ["614335", "d08b5b", "ae5d29", "edb98a", "ffdbb4", "fd9841", "f8d25c"],
+  mouth: ["default", "smile", "twinkle", "serious", "concerned", "eating"],
   eyes: ["default", "happy", "surprised", "wink", "squint"]
 };
 
@@ -30,16 +30,16 @@ export default function AvatarMaker({ initialConfig, studentName }: Props) {
 
   // Generate URL
   const avatarUrl = useMemo(() => {
-    const params = new URLSearchParams({
-      seed: studentName,
-      top: top,
-      accessories: accessories === "blank" ? "" : accessories,
-      clothing: clothing,
-      skinColor: skinColor,
-      mouth: mouth,
-      eyes: eyes,
-      backgroundColor: "e0f2fe,fce7f3,dcfce7,fef3c7"
-    });
+    const params = new URLSearchParams();
+    params.append("seed", studentName);
+    if (top && top !== "blank") params.append("top", top);
+    if (accessories && accessories !== "blank") params.append("accessories", accessories);
+    if (clothing && clothing !== "blank") params.append("clothing", clothing);
+    if (skinColor && skinColor !== "blank") params.append("skinColor", skinColor);
+    if (mouth && mouth !== "blank") params.append("mouth", mouth);
+    if (eyes && eyes !== "blank") params.append("eyes", eyes);
+    params.append("backgroundColor", "e0f2fe,fce7f3,dcfce7,fef3c7");
+    
     return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
   }, [top, accessories, clothing, skinColor, mouth, eyes, studentName]);
 
@@ -133,7 +133,13 @@ export default function AvatarMaker({ initialConfig, studentName }: Props) {
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Warna Kulit</label>
             <select value={skinColor} onChange={(e) => setSkinColor(e.target.value)} className="form-input rounded-xl border-gray-200 bg-gray-50 font-medium py-2.5 px-3">
-              {OPTIONS.skinColor.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              <option value="ffdbb4">Putih / Terang</option>
+              <option value="edb98a">Kuning Langsat</option>
+              <option value="f8d25c">Kuning Ceria</option>
+              <option value="fd9841">Oranye Hangat</option>
+              <option value="d08b5b">Cokelat Muda</option>
+              <option value="ae5d29">Cokelat Gelap</option>
+              <option value="614335">Hitam Manis</option>
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
