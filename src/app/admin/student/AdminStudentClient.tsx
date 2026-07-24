@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { Search, Edit2, Trash2, Download, Eye, EyeOff, Loader2, X, Save, User as UserIcon } from "lucide-react";
 import QRCode from "qrcode";
 import { getAvatarUrl } from "@/lib/avatar";
+import AdminReportButton from "@/components/AdminReportButton";
 
 export default function AdminStudentClient({ initialStudents }: { initialStudents: any[] }) {
   const [students, setStudents] = useState(initialStudents);
@@ -142,15 +143,18 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
           <p className="text-gray-500 mt-1 font-medium">Manajemen data, password, dan QR Code siswa</p>
         </div>
         
-        <div className="w-full md:w-auto relative">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Cari nama, username, atau NIS..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-80 pl-10 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))] outline-none font-medium text-gray-700"
-          />
+        <div className="w-full flex-1 flex flex-col md:flex-row gap-4 items-center justify-end">
+          <div className="w-full md:w-80 relative">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Cari nama, username, atau NIS..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))] outline-none font-medium text-gray-700"
+            />
+          </div>
+          <AdminReportButton students={students} />
         </div>
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Crown, Trophy } from "lucide-react";
-import { getAvatarUrl } from "@/lib/avatar";
+import AvatarFrame from "./AvatarFrame";
 
 interface LeaderboardStudent {
   id: string;
@@ -67,14 +67,7 @@ export default function LeaderboardView() {
             rankLabel = "Peringkat #3";
           }
 
-          // Avatar Logic
-          const avatarUrl = getAvatarUrl(
-            student.avatarConfig,
-            student.profileImage,
-            student.name,
-            student.gender
-          );
-
+          // Avatar and Level are handled by AvatarFrame
           return (
             <div key={student.id} className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${bgClass}`}>
               <div className={`font-black text-xl w-8 text-center ${isTop3 ? rankColor + " text-3xl" : "text-gray-400"}`}>
@@ -82,7 +75,11 @@ export default function LeaderboardView() {
               </div>
               
               <div className="relative shrink-0">
-                <img src={avatarUrl} alt={student.name} className={`w-14 h-14 rounded-2xl object-cover ${isTop3 ? 'border-2 border-current ' + rankColor : 'border border-gray-200'}`} />
+              <AvatarFrame 
+                student={student} 
+                totalScore={student.totalScore} 
+                className={`w-14 h-14 ${isTop3 ? 'ring-2 ring-offset-2 ' + (index === 0 ? 'ring-yellow-400' : index === 1 ? 'ring-slate-400' : 'ring-amber-600') : ''}`}
+              />
                 {isTop3 && (
                   <div className="absolute -top-3 -right-3 bg-white rounded-full p-1 shadow-sm">
                     <Crown className={`w-5 h-5 ${crownColor}`} />

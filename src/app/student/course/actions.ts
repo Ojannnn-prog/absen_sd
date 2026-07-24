@@ -28,6 +28,29 @@ export async function markAsCompleted(resourceId: string) {
       });
     }
 
+    // Check 100% completion for title
+    const totalResources = await prisma.courseResource.count();
+    const completedResources = await prisma.studentProgress.count({
+      where: { studentId: session.id }
+    });
+
+    if (completedResources >= totalResources) {
+      const student = await prisma.student.findUnique({
+        where: { id: session.id },
+        select: { unlockedTitles: true, activeTitle: true }
+      });
+      
+      if (student && !student.unlockedTitles.includes("Sang Penakluk")) {
+        await prisma.student.update({
+          where: { id: session.id },
+          data: {
+            unlockedTitles: { push: "Sang Penakluk" },
+            activeTitle: "Sang Penakluk"
+          }
+        });
+      }
+    }
+
     revalidatePath("/student/course");
     return { success: true };
   } catch (error: any) {

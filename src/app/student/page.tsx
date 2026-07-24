@@ -12,6 +12,9 @@ import { id as localeId } from "date-fns/locale";
 import { History, Crown, Medal, Flame, Award, CheckCircle2, XCircle } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getAvatarUrl } from "@/lib/avatar";
+import AvatarFrame from "@/components/AvatarFrame";
+import StudentReportButton from "@/components/StudentReportButton";
+import { getLevelInfo } from "@/lib/leveling";
 
 export default async function StudentDashboard() {
   const session = await getSession();
@@ -47,6 +50,7 @@ export default async function StudentDashboard() {
   const quizPoints = passedQuizzes * 10;
   const totalScore = attendancePoints + progressPoints + quizPoints;
   const currentPoints = totalScore - student.spentPoints;
+  const levelInfo = getLevelInfo(totalScore);
 
   const avatarUrl = getAvatarUrl(
     student.avatarConfig,
@@ -64,42 +68,36 @@ export default async function StudentDashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--theme-primary,var(--color-primary))] opacity-5 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="relative">
-          <img 
-            src={avatarUrl} 
-            alt="Avatar" 
-            className={`w-32 h-32 md:w-40 md:h-40 rounded-[2rem] object-cover shadow-xl border-4 ${isProPlayer ? 'border-yellow-400' : 'border-white'}`} 
+          <AvatarFrame 
+            student={student} 
+            totalScore={totalScore} 
+            className="w-32 h-32 md:w-40 md:h-40" 
           />
           {isProPlayer && (
-            <div className="absolute -top-4 -right-4 bg-gradient-to-br from-yellow-300 to-yellow-500 p-2.5 rounded-2xl shadow-lg transform rotate-12 hover:rotate-0 transition-transform cursor-help" title="Player Aktif!">
+            <div className="absolute -top-4 -right-4 bg-gradient-to-br from-yellow-300 to-yellow-500 p-2.5 rounded-2xl shadow-lg transform rotate-12 hover:rotate-0 transition-transform cursor-help z-20" title="Player Aktif!">
               <Crown className="w-8 h-8 text-white drop-shadow-md" />
             </div>
           )}
         </div>
         
         <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start relative z-20 w-full">
-          {/* Level Badge */}
-          <div className="mb-3">
-            {isProPlayer ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black rounded-full shadow-md uppercase tracking-wider">
-                <Flame className="w-3.5 h-3.5" /> Player Aktif
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded-full shadow-inner uppercase tracking-wider">
-                <Medal className="w-3.5 h-3.5" /> Newbie
-              </span>
+          {/* Level Badge & Titles */}
+          <div className="mb-3 flex flex-wrap items-center justify-center md:justify-start gap-2">
+            <div className={`px-4 py-1.5 rounded-full flex items-center gap-2 font-bold shadow-sm ${levelInfo.badgeColor} text-sm uppercase tracking-wider`}>
+              <Flame className="w-4 h-4" />
+              Lv. {levelInfo.level} - {levelInfo.title}
+            </div>
+            {student.activeTitle && (
+              <div className="px-4 py-1.5 bg-gradient-to-r from-[var(--theme-primary,var(--color-primary))] to-[var(--theme-secondary,#6366f1)] text-white rounded-full flex items-center gap-2 font-bold shadow-sm border border-white/20 text-sm uppercase tracking-widest">
+                <Award className="w-4 h-4" />
+                {student.activeTitle}
+              </div>
             )}
           </div>
 
           <ProfileEditor initialNickname={student.nickname} studentName={student.name} />
 
-          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
-            {student.activeTitle && (
-              <div className="w-full mb-2">
-                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-sm">
-                  {student.activeTitle}
-                </span>
-              </div>
-            )}
+          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3 w-full">
             <div className="inline-flex px-4 py-2 bg-white border-2 border-gray-100 rounded-xl text-sm shadow-sm">
               <span className="text-gray-500 mr-2 font-medium">Hadir:</span>
               <span className="font-black text-gray-900">{presentCount} Hari</span>
@@ -109,8 +107,13 @@ export default async function StudentDashboard() {
             </div>
           </div>
           
-          <div className="mt-6 w-full max-w-[250px]">
+          <div className="mt-6 flex flex-wrap justify-center md:justify-start gap-3 w-full">
             <ChangePasswordModal />
+            <StudentReportButton 
+              student={student} 
+              totalScore={totalScore} 
+              levelInfo={levelInfo}
+            />
           </div>
         </div>
         
