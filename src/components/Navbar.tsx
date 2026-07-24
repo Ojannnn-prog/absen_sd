@@ -23,8 +23,9 @@ export default function Navbar({ role }: { role: string | null }) {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       toast.success("Logout berhasil! Sampai jumpa.", { id: "logout" });
-      router.push("/");
-      router.refresh();
+      
+      // Force a full page reload to clear all Next.js client-side cache and states
+      window.location.href = "/login";
     } catch (err) {
       toast.error("Gagal logout.", { id: "logout" });
     }
