@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import { markAsCompleted } from "./actions";
 import toast from "react-hot-toast";
-import { PlayCircle, CheckCircle2, Circle, FileText, Video, Image as ImageIcon, Headphones, ChevronRight, Loader2, Trophy, HelpCircle } from "lucide-react";
+import { PlayCircle, CheckCircle2, Circle, FileText, Video, Image as ImageIcon, Headphones, ChevronRight, Loader2, Trophy, HelpCircle, Lock } from "lucide-react";
 import StudentQuizClient from "./StudentQuizClient";
 
 export default function CourseClient({ resources, completedIds: initialCompleted, quizAttempts = [] }: { resources: any[], completedIds: string[], quizAttempts?: any[] }) {
+  const firstUncompletedIndex = resources.findIndex(r => !initialCompleted.includes(r.id));
+  const initialIndex = firstUncompletedIndex === -1 ? 0 : firstUncompletedIndex;
+  
   const [completedIds, setCompletedIds] = useState<string[]>(initialCompleted);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isCompleting, setIsCompleting] = useState(false);
   
   // Timer for reading/watching normal resources (120s)
@@ -195,18 +198,24 @@ export default function CourseClient({ resources, completedIds: initialCompleted
               {resources.map((res, idx) => {
                 const isActive = currentIndex === idx;
                 const isCompleted = completedIds.includes(res.id);
+                const isUnlocked = idx === 0 || completedIds.includes(resources[idx - 1].id);
+                const isLocked = !isUnlocked;
                 
                 return (
                   <button
                     key={res.id}
-                    onClick={() => setCurrentIndex(idx)}
+                    onClick={() => !isLocked && setCurrentIndex(idx)}
+                    disabled={isLocked}
                     className={`text-left p-3 rounded-2xl flex items-start gap-3 transition-all ${
-                      isActive ? 'bg-[var(--theme-primary,var(--color-primary))]/10 ring-2 ring-[var(--theme-primary,var(--color-primary))]' : 'hover:bg-gray-50'
+                      isActive ? 'bg-[var(--theme-primary,var(--color-primary))]/10 ring-2 ring-[var(--theme-primary,var(--color-primary))]' : 
+                      isLocked ? 'opacity-50 cursor-not-allowed bg-gray-50/50 grayscale' : 'hover:bg-gray-50 cursor-pointer'
                     }`}
                   >
                     <div className="mt-0.5 flex-shrink-0">
                       {isCompleted ? (
                         <CheckCircle2 className="w-6 h-6 text-green-500" />
+                      ) : isLocked ? (
+                        <Lock className="w-6 h-6 text-gray-400" />
                       ) : isActive ? (
                         <PlayCircle className="w-6 h-6 text-[var(--theme-primary,var(--color-primary))]" />
                       ) : (
