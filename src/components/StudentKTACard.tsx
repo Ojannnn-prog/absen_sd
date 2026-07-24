@@ -6,6 +6,8 @@ import jsPDF from "jspdf";
 import { Download, Loader2, CreditCard } from "lucide-react";
 import QRCode from "qrcode";
 
+import toast from "react-hot-toast";
+
 interface Props {
   student: {
     name: string;
@@ -51,15 +53,18 @@ export default function StudentKTACard({ student }: Props) {
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
     setIsGenerating(true);
+    const loadingToast = toast.loading("Mencetak KTA Digital...");
 
     try {
       // Brief delay to ensure styles and fonts are fully painted
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       
       const canvas = await html2canvas(cardRef.current, {
         scale: 4, // Very high resolution for printing
         useCORS: true, 
+        allowTaint: true, // Kadang dicebear dianggap taint meski CORS true
         backgroundColor: "#ffffff",
+        logging: false, // Matikan log agar tidak nyampah di console
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -74,9 +79,10 @@ export default function StudentKTACard({ student }: Props) {
       pdf.addImage(imgData, "PNG", 0, 0, 85.6, 53.98);
       pdf.save(`KTA_${student.name.replace(/\\s+/g, '_')}_${student.studentCode}.pdf`);
       
+      toast.success("KTA berhasil dicetak!", { id: loadingToast });
     } catch (error) {
       console.error("Failed to generate KTA PDF:", error);
-      alert("Gagal mencetak KTA. Pastikan koneksi internet stabil untuk memuat aset gambar.");
+      toast.error("Gagal mencetak KTA. Pastikan internet stabil dan coba lagi.", { id: loadingToast, duration: 5000 });
     } finally {
       setIsGenerating(false);
     }
@@ -87,6 +93,70 @@ export default function StudentKTACard({ student }: Props) {
     const d = new Date(date);
     return d.toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric' });
   };
+
+  const KtaContent = () => (
+    <>
+      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-black to-transparent bg-[length:20px_20px]"></div>
+
+      <div className="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-r from-blue-600 to-indigo-700 rounded-b-[40px] shadow-md flex items-center px-8 z-10">
+        <div className="flex-1">
+          <h1 className="text-white font-black text-2xl tracking-wider drop-shadow-md">SDN 231 SUKAASIH</h1>
+          <p className="text-blue-100 font-bold text-sm tracking-widest uppercase opacity-90">Kartu Tanda Anggota</p>
+        </div>
+        <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 shadow-inner">
+          <BookIcon className="w-7 h-7 text-white drop-shadow-sm" />
+        </div>
+      </div>
+
+      <div className="absolute top-[100px] left-8 right-8 flex gap-6 z-20">
+        <div className="flex flex-col gap-2 items-center w-[120px] shrink-0">
+          <div className="w-[110px] h-[140px] bg-white rounded-xl overflow-hidden shadow-lg border-4 border-white flex items-center justify-center">
+            {safeAvatarUrl ? (
+              <img src={safeAvatarUrl} alt={student.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
+            ) : (
+              <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
+            )}
+          </div>
+          <div className="bg-blue-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-sm w-full text-center tracking-wider">
+            Siswa Aktif
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col pt-1 min-w-0">
+          <h2 className="text-[20px] font-black text-gray-900 leading-[1.2] mb-2 drop-shadow-sm pr-4 break-words whitespace-normal text-wrap max-h-[50px] overflow-hidden">
+            {student.name}
+          </h2>
+          <div className="w-12 h-1 bg-yellow-400 rounded-full mb-3 shrink-0"></div>
+
+          <div className="flex flex-col gap-2.5 w-full shrink-0">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nomor Induk Siswa (NIS)</span>
+              <span className="text-lg font-black text-gray-800 font-mono tracking-wider">{student.studentCode}</span>
+            </div>
+            
+            <div className="flex gap-8">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tempat, Tgl Lahir</span>
+                <span className="text-sm font-bold text-gray-700">{student.birthPlace || "-"}, {formatDate(student.birthDate)}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Gender</span>
+                <span className="text-sm font-bold text-gray-700">{student.gender === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-6 right-8 bg-white p-2 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center z-20">
+        {qrCodeUrl && (
+          <img src={qrCodeUrl} alt="QR Code" className="w-[60px] h-[60px]" crossOrigin="anonymous" />
+        )}
+      </div>
+      
+      <div className="absolute bottom-0 right-0 w-[200px] h-[200px] bg-blue-600/5 rounded-tl-full pointer-events-none" />
+    </>
+  );
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -105,79 +175,19 @@ export default function StudentKTACard({ student }: Props) {
         </button>
       </div>
 
-      <div 
-        className="relative w-[340px] h-[214px] sm:w-[400px] sm:h-[252px] shadow-2xl rounded-2xl overflow-hidden shrink-0 group transition-transform hover:scale-[1.02]"
-      >
-        <div 
-          ref={cardRef}
-          className="absolute top-0 left-0 w-[600px] h-[378px] bg-gray-50 origin-top-left scale-[0.5666] sm:scale-[0.6666]"
-        >
-          {/* Decorative background instead of SVG */}
-          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-black to-transparent bg-[length:20px_20px]"></div>
+      {/* Target html2canvas sebenar-benarnya (Off-screen & Pure tanpa Scale) */}
+      <div className="fixed -left-[9999px] top-0 pointer-events-none">
+        <div ref={cardRef} className="w-[600px] h-[378px] bg-gray-50 relative overflow-hidden">
+          <KtaContent />
+        </div>
+      </div>
 
-          {/* Header */}
-          <div className="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-r from-blue-600 to-indigo-700 rounded-b-[40px] shadow-md flex items-center px-8 z-10">
-            <div className="flex-1">
-              <h1 className="text-white font-black text-2xl tracking-wider drop-shadow-md">SDN 231 SUKAASIH</h1>
-              <p className="text-blue-100 font-bold text-sm tracking-widest uppercase opacity-90">Kartu Tanda Anggota</p>
-            </div>
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 shadow-inner">
-              <BookIcon className="w-7 h-7 text-white drop-shadow-sm" />
-            </div>
+      {/* Display UI (Visual only) */}
+      <div className="relative w-[340px] h-[214px] sm:w-[400px] sm:h-[252px] shadow-2xl rounded-2xl overflow-hidden shrink-0 group transition-transform hover:scale-[1.02]">
+        <div className="absolute top-0 left-0 origin-top-left scale-[0.5666] sm:scale-[0.6666] pointer-events-none" aria-hidden="true">
+          <div className="w-[600px] h-[378px] bg-gray-50 relative overflow-hidden">
+            <KtaContent />
           </div>
-
-          {/* Content Area */}
-          <div className="absolute top-[100px] left-8 right-8 flex gap-6 z-20">
-            {/* Photo Left */}
-            <div className="flex flex-col gap-2 items-center w-[120px] shrink-0">
-              <div className="w-[110px] h-[140px] bg-white rounded-xl overflow-hidden shadow-lg border-4 border-white flex items-center justify-center">
-                {safeAvatarUrl ? (
-                  <img src={safeAvatarUrl} alt={student.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
-                ) : (
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
-                )}
-              </div>
-              <div className="bg-blue-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-sm w-full text-center tracking-wider">
-                Siswa Aktif
-              </div>
-            </div>
-
-            {/* Details Right */}
-            <div className="flex-1 flex flex-col pt-1">
-              <h2 className="text-[22px] font-black text-gray-900 leading-[1.1] mb-2 drop-shadow-sm pr-4 line-clamp-2 break-words">
-                {student.name}
-              </h2>
-              <div className="w-12 h-1 bg-yellow-400 rounded-full mb-3"></div>
-
-              <div className="flex flex-col gap-2.5 w-full">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nomor Induk Siswa (NIS)</span>
-                  <span className="text-lg font-black text-gray-800 font-mono tracking-wider">{student.studentCode}</span>
-                </div>
-                
-                <div className="flex gap-8">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tempat, Tgl Lahir</span>
-                    <span className="text-sm font-bold text-gray-700">{student.birthPlace || "-"}, {formatDate(student.birthDate)}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Gender</span>
-                    <span className="text-sm font-bold text-gray-700">{student.gender === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* QR Code Bottom Right */}
-          <div className="absolute bottom-6 right-8 bg-white p-2 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center">
-            {qrCodeUrl && (
-              <img src={qrCodeUrl} alt="QR Code" className="w-[60px] h-[60px]" crossOrigin="anonymous" />
-            )}
-          </div>
-          
-          {/* Decorative Bottom shape */}
-          <div className="absolute bottom-0 right-0 w-[200px] h-[200px] bg-blue-600/5 rounded-tl-full pointer-events-none" />
         </div>
       </div>
     </div>
