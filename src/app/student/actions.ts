@@ -36,7 +36,10 @@ export async function updateProfile(nickname: string | null, profileImage: strin
 
     const updateData: any = {};
     if (nickname !== undefined) updateData.nickname = nickname;
-    if (profileImage !== undefined) updateData.profileImage = profileImage;
+    if (profileImage !== undefined) {
+      updateData.profileImage = profileImage;
+      updateData.avatarConfig = null; // Clear avatar config when uploading local photo
+    }
 
     await prisma.student.update({
       where: { id: session.id },
