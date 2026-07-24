@@ -26,6 +26,7 @@ export async function GET() {
       return {
         id: student.id,
         name: student.name,
+        gender: student.gender,
         profileImage: student.profileImage, // We still return this for the Leaderboard UI
         activeTitle: student.activeTitle,
         avatarConfig: student.avatarConfig,

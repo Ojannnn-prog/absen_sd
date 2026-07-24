@@ -5,6 +5,7 @@ import { updateStudent, deleteStudent } from "./actions";
 import toast from "react-hot-toast";
 import { Search, Edit2, Trash2, Download, Eye, EyeOff, Loader2, X, Save, User as UserIcon } from "lucide-react";
 import QRCode from "qrcode";
+import { getAvatarUrl } from "@/lib/avatar";
 
 export default function AdminStudentClient({ initialStudents }: { initialStudents: any[] }) {
   const [students, setStudents] = useState(initialStudents);
@@ -182,11 +183,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border-2 border-white shadow-sm flex items-center justify-center">
-                            {student.profileImage ? (
-                              <img src={student.profileImage} alt={student.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <UserIcon className="w-6 h-6 text-gray-400" />
-                            )}
+                            <img src={getAvatarUrl(student.avatarConfig, student.profileImage, student.name, student.gender)} alt={student.name} className="w-full h-full object-cover bg-white" />
                           </div>
                           <div>
                             <div className="font-bold text-gray-900">{student.name}</div>
@@ -296,11 +293,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
               
               <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex flex-col sm:flex-row gap-4 items-center">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 border-2 border-white shadow-md flex items-center justify-center">
-                  {editingStudent.profileImage ? (
-                    <img src={editingStudent.profileImage} alt={editingStudent.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <UserIcon className="w-8 h-8 text-gray-400" />
-                  )}
+                  <img src={getAvatarUrl(editingStudent.avatarConfig, editingStudent.profileImage, editingStudent.name, editingStudent.gender)} alt={editingStudent.name} className="w-full h-full object-cover bg-white" />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <p className="text-xs font-bold text-blue-600 mb-1 uppercase tracking-wide">Data Terkunci (Read-Only)</p>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Crown, Trophy } from "lucide-react";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface LeaderboardStudent {
   id: string;
@@ -9,6 +10,7 @@ interface LeaderboardStudent {
   profileImage: string | null;
   activeTitle: string | null;
   avatarConfig: string | null;
+  gender: string | null;
   totalScore: number;
 }
 
@@ -66,13 +68,12 @@ export default function LeaderboardView() {
           }
 
           // Avatar Logic
-          const encodedName = encodeURIComponent(student.name);
-          let avatarUrl = student.profileImage || `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=e0f2fe`;
-
-          // Custom Avatar Config
-          if (student.avatarConfig) {
-             avatarUrl = student.avatarConfig;
-          }
+          const avatarUrl = getAvatarUrl(
+            student.avatarConfig,
+            student.profileImage,
+            student.name,
+            student.gender
+          );
 
           return (
             <div key={student.id} className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${bgClass}`}>

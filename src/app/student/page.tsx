@@ -11,6 +11,7 @@ import { format, addHours } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { History, Crown, Medal, Flame, Award, CheckCircle2, XCircle } from "lucide-react";
 import { redirect } from "next/navigation";
+import { getAvatarUrl } from "@/lib/avatar";
 
 export default async function StudentDashboard() {
   const session = await getSession();
@@ -47,12 +48,12 @@ export default async function StudentDashboard() {
   const totalScore = attendancePoints + progressPoints + quizPoints;
   const currentPoints = totalScore - student.spentPoints;
 
-  // Dicebear avatar as fallback
-  const encodedName = encodeURIComponent(student.name);
-  const avatarBg = student.gender === 'L' ? 'e0f2fe' : 'fce7f3';
-  const defaultAvatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=${avatarBg}`;
-  
-  const avatarUrl = student.avatarConfig || student.profileImage || defaultAvatarUrl;
+  const avatarUrl = getAvatarUrl(
+    student.avatarConfig,
+    student.profileImage,
+    student.name,
+    student.gender
+  );
 
   return (
     <div className={`theme-${student.activeTheme} flex flex-col gap-8 animate-in fade-in duration-500`}>
