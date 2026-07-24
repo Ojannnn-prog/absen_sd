@@ -52,7 +52,7 @@ export default async function StudentDashboard() {
   const avatarBg = student.gender === 'L' ? 'e0f2fe' : 'fce7f3';
   const defaultAvatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodedName}&backgroundColor=${avatarBg}`;
   
-  const avatarUrl = student.profileImage || defaultAvatarUrl;
+  const avatarUrl = student.avatarConfig || student.profileImage || defaultAvatarUrl;
 
   return (
     <div className={`theme-${student.activeTheme} flex flex-col gap-8 animate-in fade-in duration-500`}>
