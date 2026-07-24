@@ -5,7 +5,6 @@ import ChangePasswordModal from "@/components/ChangePasswordModal";
 import ProfileEditor from "@/components/ProfileEditor";
 import ThemeShop from "@/components/ThemeShop";
 import StudentKTACard from "@/components/StudentKTACard";
-import LeaderboardView from "@/components/LeaderboardView";
 import TitleShop from "@/components/TitleShop";
 import AvatarMaker from "@/components/AvatarMaker";
 import { format, addHours } from "date-fns";

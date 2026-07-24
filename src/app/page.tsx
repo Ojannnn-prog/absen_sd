@@ -1,5 +1,6 @@
 import CalendarWidget from "@/components/CalendarWidget";
 import AnnouncementBoard from "@/components/AnnouncementBoard";
+import LeaderboardView from "@/components/LeaderboardView";
 import { QrCode, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
@@ -50,8 +51,12 @@ export default async function Home() {
       </section>
 
       {/* Main Dashboard Section */}
-      <section className="pt-4 border-t border-gray-100">
+      <section className="pt-4 border-t border-gray-100 flex flex-col gap-8">
         <AnnouncementBoard />
+        
+        <div className="w-full">
+          <LeaderboardView />
+        </div>
       </section>
     </div>
   );
