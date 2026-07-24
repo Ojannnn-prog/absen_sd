@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, User, Eye, EyeOff } from "lucide-react";
+import { Lock, User, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function AdminLogin() {
@@ -28,12 +29,9 @@ export default function AdminLogin() {
 
       if (res.ok) {
         toast.success("Login berhasil! Selamat datang.", { id: toastId });
-        if (data.role === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/student");
-        }
-        router.refresh();
+        
+        // Use full reload for absolute state clear
+        window.location.href = data.role === "admin" ? "/admin" : "/student";
       } else {
         toast.error(data.error || "Login gagal", { id: toastId });
       }
@@ -46,13 +44,20 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
-      <div className="card-soft p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-6 h-6 text-primary" />
+      <div className="card-soft p-8 w-full max-w-md relative">
+        <Link 
+          href="/" 
+          className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1.5 text-sm font-bold text-gray-400 hover:text-[var(--theme-primary,var(--color-primary))] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Beranda
+        </Link>
+        
+        <div className="text-center mb-8 mt-6">
+          <div className="w-12 h-12 rounded-full bg-[var(--theme-primary,var(--color-primary))]/10 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-[var(--theme-primary,var(--color-primary))]" />
           </div>
-          <h1 className="text-2xl font-bold text-text-header">Login Sistem</h1>
-          <p className="text-sm text-text-body mt-2">Masuk sebagai Admin atau Siswa</p>
+          <h1 className="text-2xl font-bold text-gray-900">Login Sistem</h1>
+          <p className="text-sm text-gray-500 mt-2">Masuk sebagai Admin atau Siswa</p>
         </div>
 
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -66,7 +71,7 @@ export default function AdminLogin() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 placeholder="Masukkan username"
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm"
+                className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))]/20 focus:border-[var(--theme-primary,var(--color-primary))] transition-all sm:text-sm"
               />
             </div>
           </div>
@@ -80,7 +85,7 @@ export default function AdminLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Masukkan password"
-                className="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm"
+                className="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))]/20 focus:border-[var(--theme-primary,var(--color-primary))] transition-all sm:text-sm"
               />
               <button 
                 type="button"
@@ -94,7 +99,7 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full flex justify-center py-3 mt-4"
+            className="bg-[var(--theme-primary,var(--color-primary))] hover:opacity-90 text-white font-bold w-full flex justify-center py-3 mt-4 rounded-xl shadow-md transition-all disabled:opacity-70 disabled:cursor-wait"
           >
             {loading ? "Memproses..." : "Masuk"}
           </button>
