@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { Download, Loader2, CreditCard } from "lucide-react";
 import QRCode from "qrcode";
@@ -34,23 +33,10 @@ export default function StudentKTACard({ student }: Props) {
   }, [student.studentCode]);
 
   const handleDownloadPDF = async () => {
-    if (!cardRef.current) return;
     setIsGenerating(true);
-    const loadingToast = toast.loading("Mencetak KTA Digital...");
+    const loadingToast = toast.loading("Mencetak KTA Digital (Native)...");
 
     try {
-      // Brief delay to ensure styles and fonts are fully painted
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 4, // Very high resolution for printing
-        useCORS: true, 
-        backgroundColor: "#ffffff",
-        logging: false, // Matikan log agar tidak nyampah di console
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      
       // ID-1 standard size: 85.6mm x 53.98mm
       const pdf = new jsPDF({
         orientation: "landscape",
@@ -58,13 +44,84 @@ export default function StudentKTACard({ student }: Props) {
         format: [85.6, 53.98]
       });
 
-      pdf.addImage(imgData, "PNG", 0, 0, 85.6, 53.98);
-      pdf.save(`KTA_${student.name.replace(/\\s+/g, '_')}_${student.studentCode}.pdf`);
+      // Background
+      pdf.setFillColor(248, 250, 252);
+      pdf.rect(0, 0, 85.6, 53.98, 'F');
+      
+      // Top Header (Blue)
+      pdf.setFillColor(29, 78, 216);
+      pdf.rect(0, 0, 85.6, 12, 'F');
+      
+      // Header Text
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(11);
+      pdf.text("SDN 231 SUKAASIH", 4, 6.5);
+      pdf.setFontSize(5);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("KARTU TANDA ANGGOTA", 4, 10);
+      
+      // Student Name
+      pdf.setTextColor(15, 23, 42);
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(student.name.substring(0, 35), 4, 21);
+      
+      // Yellow Line
+      pdf.setFillColor(250, 204, 21);
+      pdf.rect(4, 23, 12, 0.8, 'F');
+      
+      // NIS
+      pdf.setFontSize(4.5);
+      pdf.setTextColor(148, 163, 184);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("NOMOR INDUK SISWA (NIS)", 4, 28);
+      pdf.setFontSize(10);
+      pdf.setTextColor(30, 41, 59);
+      pdf.text(student.studentCode, 4, 32);
+      
+      const formatDatePDF = (date: Date | string | null) => {
+        if (!date) return "-";
+        const d = new Date(date);
+        return d.toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric' });
+      };
+
+      // TTL
+      pdf.setFontSize(4.5);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text("TEMPAT, TGL LAHIR", 4, 38);
+      pdf.setFontSize(7);
+      pdf.setTextColor(51, 65, 85);
+      pdf.text(`${student.birthPlace || "-"}, ${formatDatePDF(student.birthDate)}`, 4, 41);
+      
+      // Gender
+      pdf.setFontSize(4.5);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text("GENDER", 45, 38);
+      pdf.setFontSize(7);
+      pdf.setTextColor(51, 65, 85);
+      pdf.text(student.gender === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN', 45, 41);
+      
+      // Active Badge
+      pdf.setFillColor(37, 99, 235);
+      pdf.roundedRect(4, 46, 16, 4, 1, 1, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(5);
+      pdf.text("SISWA AKTIF", 12, 48.6, { align: "center" });
+
+      // QR Code
+      if (qrCodeUrl) {
+        pdf.setFillColor(255, 255, 255);
+        pdf.roundedRect(63, 18, 18, 18, 1, 1, 'F');
+        pdf.addImage(qrCodeUrl, "PNG", 64, 19, 16, 16);
+      }
+
+      pdf.save(`KTA_${student.name.replace(/\s+/g, '_')}_${student.studentCode}.pdf`);
       
       toast.success("KTA berhasil dicetak!", { id: loadingToast });
     } catch (error) {
-      console.error("Failed to generate KTA PDF:", error);
-      toast.error("Gagal mencetak KTA. Pastikan internet stabil dan coba lagi.", { id: loadingToast, duration: 5000 });
+      console.error("Failed to generate native PDF:", error);
+      toast.error("Gagal mencetak KTA. Pastikan browser mendukung PDF.", { id: loadingToast, duration: 5000 });
     } finally {
       setIsGenerating(false);
     }
@@ -146,13 +203,6 @@ export default function StudentKTACard({ student }: Props) {
           {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           {isGenerating ? "Mencetak..." : "Cetak PDF"}
         </button>
-      </div>
-
-      {/* Target html2canvas sebenar-benarnya (Off-screen & Pure tanpa Scale) */}
-      <div className="fixed -left-[9999px] top-0 pointer-events-none">
-        <div ref={cardRef} className="w-[600px] h-[378px] bg-gray-50 relative overflow-hidden">
-          <KtaContent />
-        </div>
       </div>
 
       {/* Display UI (Visual only) */}
