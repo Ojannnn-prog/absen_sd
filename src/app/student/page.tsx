@@ -5,6 +5,9 @@ import ChangePasswordModal from "@/components/ChangePasswordModal";
 import ProfileEditor from "@/components/ProfileEditor";
 import ThemeShop from "@/components/ThemeShop";
 import StudentKTACard from "@/components/StudentKTACard";
+import LeaderboardView from "@/components/LeaderboardView";
+import TitleShop from "@/components/TitleShop";
+import AvatarMaker from "@/components/AvatarMaker";
 import { format, addHours } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { History, Crown, Medal, Flame, Award, CheckCircle2, XCircle } from "lucide-react";
@@ -23,6 +26,7 @@ export default async function StudentDashboard() {
       attendances: {
         orderBy: { timestamp: "desc" },
       },
+      studentProgress: true,
       quizAttempts: {
         include: { resource: true },
         orderBy: { createdAt: "desc" }
@@ -36,7 +40,13 @@ export default async function StudentDashboard() {
 
   const presentCount = student.attendances.filter(a => a.status === 'Hadir').length;
   const isProPlayer = presentCount > 3;
-  const currentPoints = (presentCount * 10) - student.spentPoints;
+  
+  const attendancePoints = student.attendances.length * 2;
+  const progressPoints = student.studentProgress.length * 5;
+  const passedQuizzes = student.quizAttempts.filter((q) => q.passed).length;
+  const quizPoints = passedQuizzes * 10;
+  const totalScore = attendancePoints + progressPoints + quizPoints;
+  const currentPoints = totalScore - student.spentPoints;
 
   // Dicebear avatar as fallback
   const encodedName = encodeURIComponent(student.name);
@@ -83,6 +93,13 @@ export default async function StudentDashboard() {
           <ProfileEditor initialNickname={student.nickname} studentName={student.name} />
 
           <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
+            {student.activeTitle && (
+              <div className="w-full mb-2">
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-sm">
+                  {student.activeTitle}
+                </span>
+              </div>
+            )}
             <div className="inline-flex px-4 py-2 bg-white border-2 border-gray-100 rounded-xl text-sm shadow-sm">
               <span className="text-gray-500 mr-2 font-medium">Hadir:</span>
               <span className="font-black text-gray-900">{presentCount} Hari</span>
@@ -117,12 +134,31 @@ export default async function StudentDashboard() {
         }} />
       </div>
 
+      {/* Title Shop & Avatar Pass */}
+      <TitleShop 
+        currentPoints={currentPoints}
+        unlockedTitles={student.unlockedTitles}
+        activeTitle={student.activeTitle}
+        avatarUnlocked={student.avatarUnlocked}
+      />
+
+      {/* Avatar Maker (Hanya muncul jika sudah dibeli) */}
+      {student.avatarUnlocked && (
+        <AvatarMaker 
+          initialConfig={student.avatarConfig} 
+          studentName={student.name} 
+        />
+      )}
+
       {/* Theme Shop */}
       <ThemeShop 
         currentPoints={currentPoints}
         unlockedThemes={student.unlockedThemes}
         activeTheme={student.activeTheme}
       />
+
+      {/* Leaderboard */}
+      <LeaderboardView />
 
       {/* Riwayat Nilai Ujian */}
       <div className="card-soft p-6 md:p-8">

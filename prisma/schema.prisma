@@ -16,19 +16,23 @@ model Admin {
 }
 
 model Student {
-  id          String       @id @default(cuid())
-  name        String
-  gender      String       // "L" atau "P"
-  birthPlace  String?
-  birthDate   DateTime?
-  studentCode String       @unique // Format: 2312026xxx
-  username       String       @unique
-  password       String
-  profileImage   String?      // Base64 string for avatar
-  nickname       String?      // Gamertag/Display name
-  spentPoints    Int          @default(0)
-  activeTheme    String       @default("default")
+  id              String            @id @default(cuid())
+  name            String
+  gender          String            // "L" atau "P"
+  birthPlace      String?
+  birthDate       DateTime?
+  studentCode     String            @unique // Format: 2312026xxx
+  username        String            @unique
+  password        String
+  profileImage    String?           // Base64 string for avatar
+  nickname        String?           // Gamertag/Display name
+  spentPoints     Int               @default(0)
+  activeTheme     String            @default("default")
   unlockedThemes  String[]          @default(["default"])
+  activeTitle     String?           // Titel yang sedang digunakan (misal "Sang Jagoan")
+  unlockedTitles  String[]          @default([]) // Titel yang sudah dibeli
+  avatarUnlocked  Boolean           @default(false) // Status apakah Avatar Pass sudah dibeli
+  avatarConfig    String?           // JSON string untuk menyimpan konfigurasi wajah, mulut, mata, dll
   attendances     Attendance[]
   studentProgress StudentProgress[]
   quizAttempts    QuizAttempt[]
