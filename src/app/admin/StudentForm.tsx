@@ -13,6 +13,7 @@ export default function StudentForm() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [gender, setGender] = useState<"L" | "P" | "">("");
+  const [classGroup, setClassGroup] = useState("A");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +29,7 @@ export default function StudentForm() {
     
     const formData = new FormData(form);
     formData.append("gender", gender); // Append state based gender
+    formData.append("classGroup", classGroup);
     
     try {
       const res = await createStudent(formData);
@@ -119,6 +121,24 @@ export default function StudentForm() {
                         <span className={`font-medium ${gender === "P" ? "text-pink-600" : "text-gray-600"}`}>Perempuan</span>
                         {gender === "P" && <CheckCircle2 className="w-5 h-5 text-pink-500" />}
                       </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kelas (Role Akses) <span className="text-red-500">*</span></label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {["A", "B", "C"].map((cls) => (
+                        <div
+                          key={cls}
+                          onClick={() => setClassGroup(cls)}
+                          className={`cursor-pointer border-2 rounded-xl p-3 flex items-center justify-between transition-all ${
+                            classGroup === cls ? "border-indigo-600 bg-indigo-50 text-indigo-700 font-bold shadow-sm" : "border-gray-100 hover:border-gray-200 text-gray-600"
+                          }`}
+                        >
+                          <span>Kelas 6{cls}</span>
+                          {classGroup === cls && <CheckCircle2 className="w-5 h-5 text-indigo-600" />}
+                        </div>
+                      ))}
                     </div>
                   </div>
 

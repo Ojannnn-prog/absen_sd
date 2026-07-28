@@ -14,6 +14,7 @@ import { redirect } from "next/navigation";
 import { getAvatarUrl } from "@/lib/avatar";
 import AvatarFrame from "@/components/AvatarFrame";
 import StudentReportButton from "@/components/StudentReportButton";
+import LeaderboardView from "@/components/LeaderboardView";
 import { getLevelInfo } from "@/lib/leveling";
 
 export default async function StudentDashboard() {
@@ -83,6 +84,9 @@ export default async function StudentDashboard() {
         <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start relative z-20 w-full">
           {/* Level Badge & Titles */}
           <div className="mb-3 flex flex-wrap items-center justify-center md:justify-start gap-2">
+            <div className="px-4 py-1.5 rounded-full flex items-center gap-2 font-bold shadow-sm bg-amber-500 text-white text-sm uppercase tracking-wider">
+              KELAS 6{student.classGroup || "A"}
+            </div>
             <div className={`px-4 py-1.5 rounded-full flex items-center gap-2 font-bold shadow-sm ${levelInfo.badgeColor} text-sm uppercase tracking-wider`}>
               <Flame className="w-4 h-4" />
               Lv. {levelInfo.level} - {levelInfo.title}
@@ -133,6 +137,7 @@ export default async function StudentDashboard() {
           birthPlace: student.birthPlace,
           birthDate: student.birthDate,
           gender: student.gender,
+          classGroup: student.classGroup,
           profileImage: student.profileImage
         }} />
       </div>
@@ -257,6 +262,11 @@ export default async function StudentDashboard() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Leaderboard Kelas */}
+      <div className="w-full">
+        <LeaderboardView />
       </div>
     </div>
   );

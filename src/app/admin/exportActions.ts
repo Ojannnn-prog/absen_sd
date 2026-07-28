@@ -2,9 +2,15 @@
 
 import prisma from "@/lib/prisma";
 
-export async function getExportData() {
+export async function getExportData(classGroup?: string) {
   try {
+    const whereClause: any = {};
+    if (classGroup && classGroup !== "ALL") {
+      whereClause.classGroup = classGroup;
+    }
+
     const students = await prisma.student.findMany({
+      where: whereClause,
       include: {
         attendances: true
       },
@@ -27,6 +33,7 @@ export async function getExportData() {
         "Nama Siswa": s.name,
         "L/P": s.gender,
         "Nomor Induk": s.studentCode,
+        "Kelas": `6${s.classGroup || "A"}`,
         "Tempat Lahir": s.birthPlace || "-",
         "Tanggal Lahir": s.birthDate ? s.birthDate.toLocaleDateString("id-ID") : "-",
         "Hadir": hadir,

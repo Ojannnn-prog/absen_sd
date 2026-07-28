@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Settings, Megaphone, BookOpen } from "lucide-react";
+import { Settings, Megaphone, BookOpen, GraduationCap } from "lucide-react";
 import StudentForm from "./StudentForm";
 import EditAdminModal from "@/components/EditAdminModal";
 import ManageAnnouncementsModal from "@/components/ManageAnnouncementsModal";
@@ -37,6 +37,9 @@ export default function AdminHeader({ admin, announcements = [] }: { admin: any,
       </div>
       
       <div className="flex flex-wrap items-center gap-4">
+        <Link href="/admin/teacher" className="btn-primary bg-indigo-600 hover:bg-indigo-700 flex items-center gap-2">
+          <GraduationCap className="w-4 h-4" /> Kelola Guru
+        </Link>
         <Link href="/admin/resources" className="btn-primary bg-indigo-600 hover:bg-indigo-700 flex items-center gap-2">
           <BookOpen className="w-4 h-4" /> Kelola Materi
         </Link>

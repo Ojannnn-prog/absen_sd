@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle } from "lucide-react";
+import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle, GraduationCap, QrCode } from "lucide-react";
 import toast from "react-hot-toast";
 import ActivePing from "./ActivePing";
 
@@ -41,8 +41,28 @@ export default function Navbar({ role }: { role: string | null }) {
           <a href="/admin/student" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
             <Users className="w-5 h-5" /> Kelola Siswa
           </a>
+          <a href="/admin/teacher" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
+            <GraduationCap className="w-5 h-5 text-indigo-600" /> Kelola Guru
+          </a>
           <a href="/admin/resources" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
             <BookOpen className="w-5 h-5" /> Sumber Belajar
+          </a>
+        </>
+      );
+    }
+
+    if (role === "teacher") {
+      return (
+        <>
+          <ActivePing />
+          <a href="/teacher" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
+            <Home className="w-5 h-5" /> Dasbor Guru
+          </a>
+          <a href="/teacher/student" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
+            <Users className="w-5 h-5 text-primary" /> Kelola Siswa
+          </a>
+          <a href="/teacher/scanner" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
+            <QrCode className="w-5 h-5 text-indigo-600" /> Scanner Kelas
           </a>
         </>
       );

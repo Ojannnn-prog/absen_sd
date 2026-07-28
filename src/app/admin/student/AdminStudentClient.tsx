@@ -35,12 +35,16 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
   const [editingStudent, setEditingStudent] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  // Filter state
+  const [classFilter, setClassFilter] = useState<string>("ALL");
+
   // Form states
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [gender, setGender] = useState("");
   const [birthPlace, setBirthPlace] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [classGroup, setClassGroup] = useState("A");
 
   // Password visibility tracking per row
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
@@ -73,6 +77,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
     setGender(student.gender || "");
     setBirthPlace(student.birthPlace || "");
     setBirthDate(student.birthDate ? new Date(student.birthDate).toISOString().split('T')[0] : "");
+    setClassGroup(student.classGroup || "A");
     setIsModalOpen(true);
   };
 
@@ -96,7 +101,8 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
         password: password !== editingStudent.password ? password : undefined,
         gender,
         birthPlace,
-        birthDate: birthDate ? new Date(birthDate) : null
+        birthDate: birthDate ? new Date(birthDate) : null,
+        classGroup,
       });
 
       if (res.success) {
@@ -129,32 +135,58 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
     }
   };
 
-  const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
-    s.username.toLowerCase().includes(search.toLowerCase()) ||
-    s.studentCode.includes(search)
-  );
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || 
+      s.username.toLowerCase().includes(search.toLowerCase()) ||
+      s.studentCode.includes(search);
+    const matchesClass = classFilter === "ALL" || s.classGroup === classFilter;
+    return matchesSearch && matchesClass;
+  });
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900">Kelola Data Siswa</h1>
-          <p className="text-gray-500 mt-1 font-medium">Manajemen data, password, dan QR Code siswa</p>
-        </div>
-        
-        <div className="w-full flex-1 flex flex-col md:flex-row gap-4 items-center justify-end">
-          <div className="w-full md:w-80 relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Cari nama, username, atau NIS..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))] outline-none font-medium text-gray-700"
-            />
+      <div className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-gray-900">Kelola Data Siswa</h1>
+            <p className="text-gray-500 mt-1 font-medium">Manajemen data, kelas pengampu, password, dan QR Code siswa</p>
           </div>
-          <AdminReportButton students={students} />
+          
+          <div className="w-full flex-1 flex flex-col md:flex-row gap-4 items-center justify-end">
+            <div className="w-full md:w-80 relative">
+              <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Cari nama, username, atau NIS..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))] outline-none font-medium text-gray-700"
+              />
+            </div>
+            <AdminReportButton students={filteredStudents} />
+          </div>
+        </div>
+
+        {/* Class Filter Tabs */}
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+          {[
+            { id: "ALL", label: "Semua Kelas" },
+            { id: "A", label: "Kelas 6A" },
+            { id: "B", label: "Kelas 6B" },
+            { id: "C", label: "Kelas 6C" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setClassFilter(tab.id)}
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
+                classFilter === tab.id
+                  ? "bg-indigo-600 text-white shadow-md"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -191,8 +223,13 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                           </div>
                           <div>
                             <div className="font-bold text-gray-900">{student.name}</div>
-                            <div className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md inline-block mt-1">
-                              NIS: {student.studentCode}
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md inline-block">
+                                NIS: {student.studentCode}
+                              </div>
+                              <div className="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md inline-block border border-indigo-100">
+                                Kelas 6{student.classGroup || "A"}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -376,6 +413,26 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                     />
                     <span className="font-bold text-gray-700">Perempuan</span>
                   </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Kelas (Role Akses)</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {["A", "B", "C"].map((cls) => (
+                    <button
+                      type="button"
+                      key={cls}
+                      onClick={() => setClassGroup(cls)}
+                      className={`py-3 px-4 rounded-xl font-bold text-center border-2 transition-all ${
+                        classGroup === cls
+                          ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Kelas 6{cls}
+                    </button>
+                  ))}
                 </div>
               </div>
 

@@ -9,6 +9,7 @@ export async function createStudent(formData: FormData) {
   const gender = formData.get("gender") as string;
   const birthPlace = formData.get("birthPlace") as string;
   const birthDateStr = formData.get("birthDate") as string;
+  const classGroup = formData.get("classGroup") as string || "A";
   
   if (!name || !gender) {
     return { success: false, message: "Nama dan jenis kelamin wajib diisi" };
@@ -55,6 +56,7 @@ export async function createStudent(formData: FormData) {
         birthDate,
         studentCode,
         username,
+        classGroup,
         password: hashedPassword,
       }
     });
@@ -73,7 +75,7 @@ export async function createStudent(formData: FormData) {
   }
 }
 
-export async function importStudentsBulk(studentsData: any[]) {
+export async function importStudentsBulk(studentsData: any[], targetClassGroup?: string) {
   try {
     if (!studentsData || studentsData.length === 0) {
       return { success: false, message: "Data siswa kosong" };
@@ -110,6 +112,9 @@ export async function importStudentsBulk(studentsData: any[]) {
         }
       }
 
+      const rawClass = (student.classGroup || student.kelas || student.Kelas || targetClassGroup || "A").toString();
+      const cleanClass = rawClass.replace(/[^ABCabc]/g, "").toUpperCase() || (targetClassGroup || "A");
+
       return {
         name: student.name || "Tanpa Nama",
         gender: student.gender === "P" || student.gender === "Perempuan" ? "P" : "L",
@@ -117,6 +122,7 @@ export async function importStudentsBulk(studentsData: any[]) {
         birthDate: birthDate,
         studentCode: studentCode,
         username: studentCode,
+        classGroup: cleanClass,
         password: hashedPassword,
       };
     });
@@ -140,6 +146,7 @@ export async function updateStudent(id: string, formData: FormData) {
   const gender = formData.get("gender") as string;
   const birthPlace = formData.get("birthPlace") as string;
   const birthDateStr = formData.get("birthDate") as string;
+  const classGroup = formData.get("classGroup") as string;
   const newPassword = formData.get("newPassword") as string;
 
   let birthDate = null;
@@ -156,6 +163,10 @@ export async function updateStudent(id: string, formData: FormData) {
     birthPlace,
     birthDate,
   };
+
+  if (classGroup && classGroup.trim() !== "") {
+    updateData.classGroup = classGroup.trim();
+  }
 
   if (newPassword && newPassword.trim() !== "") {
     updateData.password = await hashPassword(newPassword.trim());

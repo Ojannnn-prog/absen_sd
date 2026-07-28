@@ -48,7 +48,10 @@ export default function StudentCard({ student }: { student: any }) {
         <div className="w-full flex justify-between items-start mb-2 pr-16">
           <div className="text-left flex flex-col items-start">
             <p className="font-bold text-gray-900">{student.name}</p>
-            <p className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-0.5 rounded mt-1 w-fit">{student.studentCode}</p>
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-0.5 rounded">{student.studentCode}</span>
+              <span className="text-[11px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Kelas 6{student.classGroup || "A"}</span>
+            </div>
             {student.birthPlace && student.birthDate && (
               <p className="text-[10px] text-gray-400 mt-1 line-clamp-2 text-left">
                 {student.birthPlace}, {new Date(student.birthDate).toLocaleDateString('id-ID')}

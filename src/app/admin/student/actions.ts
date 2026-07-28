@@ -10,6 +10,7 @@ export async function updateStudent(id: string, data: {
   gender: string;
   birthPlace: string;
   birthDate: Date | null;
+  classGroup?: string;
 }) {
   try {
     const session = await getSession();
@@ -21,6 +22,10 @@ export async function updateStudent(id: string, data: {
       birthPlace: data.birthPlace,
       birthDate: data.birthDate
     };
+
+    if (data.classGroup) {
+      updateData.classGroup = data.classGroup;
+    }
 
     if (data.password) {
       updateData.password = data.password;

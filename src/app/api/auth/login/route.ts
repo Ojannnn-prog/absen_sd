@@ -29,7 +29,30 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
-    // Cek di tabel Student jika bukan admin
+    // Cek di tabel Teacher jika bukan admin
+    const teacher = await prisma.teacher.findUnique({
+      where: { username },
+    });
+
+    if (teacher) {
+      const isValid = await verifyPassword(password, teacher.password);
+      if (!isValid) {
+        return NextResponse.json({ error: "Password salah" }, { status: 401 });
+      }
+
+      const session = await encrypt({ id: teacher.id, role: "teacher", username: teacher.username, classGroup: teacher.classGroup });
+      const res = NextResponse.json({ success: true, role: "teacher", classGroup: teacher.classGroup });
+      res.cookies.set({
+        name: "session",
+        value: session,
+        httpOnly: true,
+        path: "/",
+        maxAge: 60 * 60 * 24, // 24 hours
+      });
+      return res;
+    }
+
+    // Cek di tabel Student jika bukan admin maupun teacher
     const student = await prisma.student.findUnique({
       where: { username },
     });
@@ -40,8 +63,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Password salah" }, { status: 401 });
       }
 
-      const session = await encrypt({ id: student.id, role: "student", username: student.username });
-      const res = NextResponse.json({ success: true, role: "student" });
+      const session = await encrypt({ id: student.id, role: "student", username: student.username, classGroup: student.classGroup });
+      const res = NextResponse.json({ success: true, role: "student", classGroup: student.classGroup });
       res.cookies.set({
         name: "session",
         value: session,

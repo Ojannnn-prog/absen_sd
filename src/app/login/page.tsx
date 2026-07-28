@@ -31,7 +31,7 @@ export default function AdminLogin() {
         toast.success("Login berhasil! Selamat datang.", { id: toastId });
         
         // Use full reload for absolute state clear
-        window.location.href = data.role === "admin" ? "/admin" : "/student";
+        window.location.href = data.role === "admin" ? "/admin" : data.role === "teacher" ? "/teacher" : "/student";
       } else {
         toast.error(data.error || "Login gagal", { id: toastId });
       }

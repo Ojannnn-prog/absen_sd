@@ -9,20 +9,21 @@ import { importStudentsBulk } from "@/app/admin/actions";
 export default function ImportStudentsModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [targetClassGroup, setTargetClassGroup] = useState("A");
 
   const handleDownloadTemplate = () => {
     // Create a new workbook
     const wb = XLSX.utils.book_new();
     // Headers matching our expected format
     const wsData = [
-      ["Nama Siswa", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin (L/P)"],
-      ["Budi Santoso", "Jakarta", "2015-08-17", "L"],
-      ["Siti Aminah", "Bandung", "2016-01-20", "P"],
+      ["Nama Siswa", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin (L/P)", "Kelas (A/B/C)"],
+      ["Budi Santoso", "Jakarta", "2015-08-17", "L", "A"],
+      ["Siti Aminah", "Bandung", "2016-01-20", "P", "B"],
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     
     // Set column widths for better readability
-    ws["!cols"] = [{ wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+    ws["!cols"] = [{ wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 15 }];
     
     XLSX.utils.book_append_sheet(wb, ws, "Template_Siswa");
     XLSX.writeFile(wb, "Template_Import_Siswa_SDN231.xlsx");
@@ -94,9 +95,10 @@ export default function ImportStudentsModal() {
           birthPlace: row[1] ? String(row[1]).trim() : "",
           birthDate: parseExcelDate(row[2]),
           gender: String(row[3] || "L").trim().toUpperCase(),
+          classGroup: row[4] ? String(row[4]).trim() : undefined,
         }));
 
-        const result = await importStudentsBulk(studentsToImport);
+        const result = await importStudentsBulk(studentsToImport, targetClassGroup);
         
         if (result.success) {
           toast.success(`${result.count} data siswa berhasil diimpor! Password default: 231Sukaasih`, { duration: 5000 });
@@ -158,6 +160,26 @@ export default function ImportStudentsModal() {
                   <Download className="w-4 h-4" />
                   Download Format Excel
                 </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Pilih Kelas Tujuan Default:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["A", "B", "C"].map((cls) => (
+                    <button
+                      key={cls}
+                      type="button"
+                      onClick={() => setTargetClassGroup(cls)}
+                      className={`py-2 rounded-xl font-bold text-sm border-2 transition-all ${
+                        targetClassGroup === cls
+                          ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Kelas 6{cls}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="relative group">

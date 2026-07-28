@@ -15,6 +15,7 @@ interface Props {
     birthDate: Date | string | null;
     gender: string;
     profileImage: string | null;
+    classGroup?: string;
   };
 }
 
@@ -111,6 +112,11 @@ export default function StudentKTACard({ student }: Props) {
       pdf.setFontSize(4.5);
       pdf.text("SISWA AKTIF", 12, 47.6, { align: "center" });
 
+      // Class Badge
+      pdf.setFillColor(245, 158, 11); // Amber
+      pdf.roundedRect(22, 45, 16, 4, 1, 1, 'F');
+      pdf.text(`KELAS 6${student.classGroup || "A"}`, 30, 47.6, { align: "center" });
+
       // QR Code
       if (qrCodeUrl) {
         pdf.setFillColor(255, 255, 255);
@@ -175,8 +181,13 @@ export default function StudentKTACard({ student }: Props) {
             </div>
           </div>
           
-          <div className="mt-4 bg-blue-600 text-white text-[10px] font-black uppercase px-4 py-1.5 rounded-full shadow-sm w-fit tracking-wider">
-            Siswa Aktif
+          <div className="mt-4 flex items-center gap-2">
+            <div className="bg-blue-600 text-white text-[10px] font-black uppercase px-3.5 py-1.5 rounded-full shadow-sm w-fit tracking-wider">
+              Siswa Aktif
+            </div>
+            <div className="bg-amber-500 text-white text-[10px] font-black uppercase px-3.5 py-1.5 rounded-full shadow-sm w-fit tracking-wider">
+              KELAS 6{student.classGroup || "A"}
+            </div>
           </div>
         </div>
       </div>

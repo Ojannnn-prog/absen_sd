@@ -11,18 +11,26 @@ interface LeaderboardStudent {
   activeTitle: string | null;
   avatarConfig: string | null;
   gender: string | null;
+  classGroup?: string;
   totalScore: number;
 }
 
 export default function LeaderboardView() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardStudent[]>([]);
+  const [classGroup, setClassGroup] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/leaderboard", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        setLeaderboard(data);
+        if (Array.isArray(data)) {
+          setLeaderboard(data);
+          setClassGroup("ALL");
+        } else {
+          setLeaderboard(data.leaderboard || []);
+          setClassGroup(data.classGroup || "ALL");
+        }
         setLoading(false);
       })
       .catch(console.error);
@@ -36,9 +44,18 @@ export default function LeaderboardView() {
     <div className="card-soft p-6 md:p-8 bg-white border-2 border-yellow-400/20 shadow-xl relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400 opacity-5 blur-[100px] rounded-full pointer-events-none" />
       
-      <div className="flex items-center gap-3 mb-6">
-        <Trophy className="w-8 h-8 text-yellow-500" />
-        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Global Server</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+        <div className="flex items-center gap-3">
+          <Trophy className="w-8 h-8 text-yellow-500" />
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+            Top Global Server {classGroup === "ALL" ? "(Semua Kelas)" : `- Kelas 6${classGroup}`}
+          </h2>
+        </div>
+        {classGroup !== "ALL" && (
+          <span className="text-xs font-extrabold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-200 w-fit">
+            Isolasi Kelas 6{classGroup}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -92,6 +109,9 @@ export default function LeaderboardView() {
                   <h3 className={`font-bold truncate ${isTop3 ? 'text-gray-900 text-lg' : 'text-gray-700'}`}>
                     {student.name}
                   </h3>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md shrink-0">
+                    6{student.classGroup || "A"}
+                  </span>
                   {isTop3 && <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${rankColor} bg-white shrink-0`}>{rankLabel}</span>}
                 </div>
                 {student.activeTitle && (

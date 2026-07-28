@@ -10,11 +10,12 @@ import toast from "react-hot-toast";
 
 export default function ExportButtons() {
   const [loading, setLoading] = useState<"excel" | "pdf" | null>(null);
+  const [selectedClass, setSelectedClass] = useState("ALL");
 
   const exportExcel = async () => {
     setLoading("excel");
     try {
-      const data = await getExportData();
+      const data = await getExportData(selectedClass);
       if (!data || data.length === 0) {
         toast.error("Tidak ada data siswa untuk diekspor.");
         return;
@@ -26,7 +27,7 @@ export default function ExportButtons() {
       XLSX.utils.book_append_sheet(wb, ws, "Laporan Kehadiran");
 
       // Download file
-      XLSX.writeFile(wb, `Laporan_Kehadiran_SDN231_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.xlsx`);
+      XLSX.writeFile(wb, `Laporan_Kehadiran_SDN231_Kelas_${selectedClass}_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.xlsx`);
       toast.success("Laporan Excel berhasil diunduh!");
     } catch (err) {
       console.error(err);
@@ -39,7 +40,7 @@ export default function ExportButtons() {
   const exportPDF = async () => {
     setLoading("pdf");
     try {
-      const data = await getExportData();
+      const data = await getExportData(selectedClass);
       if (!data || data.length === 0) {
         toast.error("Tidak ada data siswa untuk diekspor.");
         return;
@@ -49,7 +50,7 @@ export default function ExportButtons() {
       
       // Header
       doc.setFontSize(18);
-      doc.text("Laporan Kehadiran Siswa SDN 231 Sukaasih", 14, 22);
+      doc.text(`Laporan Kehadiran Siswa SDN 231 Sukaasih (${selectedClass === "ALL" ? "Semua Kelas" : `Kelas 6${selectedClass}`})`, 14, 22);
       
       doc.setFontSize(11);
       doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 30);
@@ -69,7 +70,7 @@ export default function ExportButtons() {
       });
 
       // Save PDF
-      doc.save(`Laporan_Kehadiran_SDN231_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.pdf`);
+      doc.save(`Laporan_Kehadiran_SDN231_Kelas_${selectedClass}_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.pdf`);
       toast.success("Laporan PDF berhasil diunduh!");
     } catch (err) {
       console.error(err);
@@ -80,7 +81,18 @@ export default function ExportButtons() {
   };
 
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        value={selectedClass}
+        onChange={(e) => setSelectedClass(e.target.value)}
+        className="bg-gray-50 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        <option value="ALL">Semua Kelas</option>
+        <option value="A">Kelas 6A</option>
+        <option value="B">Kelas 6B</option>
+        <option value="C">Kelas 6C</option>
+      </select>
+
       <button 
         onClick={exportExcel}
         disabled={loading !== null}
