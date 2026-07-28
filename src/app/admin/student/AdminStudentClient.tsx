@@ -7,10 +7,12 @@ import { Search, Edit2, Trash2, Download, Eye, EyeOff, Loader2, X, Save, User as
 import QRCode from "qrcode";
 import { getAvatarUrl } from "@/lib/avatar";
 import AdminReportButton from "@/components/AdminReportButton";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function AdminStudentClient({ initialStudents }: { initialStudents: any[] }) {
   const [students, setStudents] = useState(initialStudents);
   const [search, setSearch] = useState("");
+  const [studentToDelete, setStudentToDelete] = useState<{ id: string; name: string } | null>(null);
   
   const getOnlineStatus = (lastActive: string | null) => {
     if (!lastActive) return { isOnline: false, text: "Belum pernah login" };
@@ -118,8 +120,14 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
     }
   };
 
-  const handleDelete = async (id: string, studentName: string) => {
-    if (!confirm(`Peringatan: Hapus data siswa ${studentName} beserta semua riwayat absen dan nilainya secara permanen?`)) return;
+  const handleDeleteClick = (id: string, name: string) => {
+    setStudentToDelete({ id, name });
+  };
+
+  const executeDeleteStudent = async () => {
+    if (!studentToDelete) return;
+    const { id } = studentToDelete;
+    setStudentToDelete(null);
     
     toast.loading("Menghapus...", { id: "delete" });
     try {
@@ -394,7 +402,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button 
-                            onClick={() => handleDelete(student.id, student.name)}
+                            onClick={() => handleDeleteClick(student.id, student.name)}
                             className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                             title="Hapus Siswa"
                           >
@@ -556,6 +564,21 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
           </div>
         </div>
       )}
+
+      {/* Delete Student Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!studentToDelete}
+        onClose={() => setStudentToDelete(null)}
+        onConfirm={executeDeleteStudent}
+        title="Hapus Data Siswa"
+        message={
+          <>
+            Peringatan: Hapus data siswa <strong className="text-gray-900 font-bold">&ldquo;{studentToDelete?.name}&rdquo;</strong> beserta semua riwayat absensi dan nilainya secara permanen? Data yang dihapus tidak dapat dikembalikan.
+          </>
+        }
+        confirmText="Ya, Hapus Siswa"
+        variant="danger"
+      />
     </div>
   );
 }

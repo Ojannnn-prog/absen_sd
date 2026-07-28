@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { submitQuiz } from "./actions";
 import toast from "react-hot-toast";
 import { Timer, CheckCircle2, XCircle, RefreshCcw, ArrowRight, Loader2, Award, PlayCircle } from "lucide-react";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function StudentQuizClient({ 
   resource, 
@@ -20,6 +21,7 @@ export default function StudentQuizClient({
   const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showIncompleteModal, setShowIncompleteModal] = useState(false);
 
   useEffect(() => {
     if (!isStarted || isSubmitting) return;
@@ -48,9 +50,14 @@ export default function StudentQuizClient({
 
   const handleSubmit = async () => {
     if (Object.keys(answers).length < resource.questions.length) {
-      if (!confirm("Masih ada soal yang belum dijawab! Yakin ingin mengirim?")) return;
+      setShowIncompleteModal(true);
+      return;
     }
-    
+    await executeSubmitQuiz();
+  };
+
+  const executeSubmitQuiz = async () => {
+    setShowIncompleteModal(false);
     setIsSubmitting(true);
     toast.loading("Memeriksa jawaban...", { id: "quiz" });
     try {
@@ -216,6 +223,17 @@ export default function StudentQuizClient({
           </button>
         </div>
       </div>
+
+      {/* Incomplete Quiz Confirm Modal */}
+      <ConfirmModal
+        isOpen={showIncompleteModal}
+        onClose={() => setShowIncompleteModal(false)}
+        onConfirm={executeSubmitQuiz}
+        title="Kirim Jawaban Kuis?"
+        message="Masih ada soal yang belum Anda jawab. Apakah Anda yakin ingin mengirim jawaban kuis sekarang?"
+        confirmText="Ya, Kirim Sekarang"
+        variant="warning"
+      />
     </div>
   );
 }

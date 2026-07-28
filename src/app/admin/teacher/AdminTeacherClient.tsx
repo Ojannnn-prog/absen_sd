@@ -5,6 +5,7 @@ import { createTeacher, updateTeacher, deleteTeacher } from "./actions";
 import toast from "react-hot-toast";
 import { Search, Edit2, Trash2, Eye, EyeOff, Loader2, X, Save, UserPlus, CheckCircle2, Copy, GraduationCap } from "lucide-react";
 import { getAvatarUrl } from "@/lib/avatar";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function AdminTeacherClient({ initialTeachers }: { initialTeachers: any[] }) {
   const [teachers, setTeachers] = useState(initialTeachers);
@@ -15,6 +16,9 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [addResult, setAddResult] = useState<any>(null);
+
+  // Delete modal state
+  const [teacherToDelete, setTeacherToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Edit modal states
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -119,8 +123,14 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Hapus akun Guru "${name}" secara permanen?`)) return;
+  const handleDeleteClick = (id: string, name: string) => {
+    setTeacherToDelete({ id, name });
+  };
+
+  const executeDeleteTeacher = async () => {
+    if (!teacherToDelete) return;
+    const { id } = teacherToDelete;
+    setTeacherToDelete(null);
     toast.loading("Menghapus...", { id: "delete-teacher" });
     try {
       const res = await deleteTeacher(id);
@@ -260,7 +270,7 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(t.id, t.name)}
+                            onClick={() => handleDeleteClick(t.id, t.name)}
                             className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                             title="Hapus Guru"
                           >
@@ -517,6 +527,21 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
           </div>
         </div>
       )}
+
+      {/* Delete Teacher Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!teacherToDelete}
+        onClose={() => setTeacherToDelete(null)}
+        onConfirm={executeDeleteTeacher}
+        title="Hapus Akun Guru"
+        message={
+          <>
+            Apakah Anda yakin ingin menghapus akun Guru <strong className="text-gray-900 font-bold">&ldquo;{teacherToDelete?.name}&rdquo;</strong> secara permanen? Akun ini tidak dapat dikembalikan setelah dihapus.
+          </>
+        }
+        confirmText="Ya, Hapus Guru"
+        variant="danger"
+      />
     </div>
   );
 }

@@ -4,12 +4,14 @@ import { useState } from "react";
 import { createResource, deleteResource, updateResource } from "./actions";
 import toast from "react-hot-toast";
 import { Trash2, Plus, FileText, Video, Image as ImageIcon, Headphones, Loader2, Edit2, Save, HelpCircle, AlertCircle } from "lucide-react";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function AdminResourcesClient({ initialResources }: { initialResources: any[] }) {
   const [resources, setResources] = useState(initialResources);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState<{ id: string; title: string } | null>(null);
 
   // Form states
   const [title, setTitle] = useState("");
@@ -137,8 +139,14 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus materi ini?")) return;
+  const handleDeleteClick = (id: string, title: string) => {
+    setResourceToDelete({ id, title });
+  };
+
+  const executeDeleteResource = async () => {
+    if (!resourceToDelete) return;
+    const { id } = resourceToDelete;
+    setResourceToDelete(null);
     
     toast.loading("Menghapus...", { id: "delete" });
     try {
@@ -389,7 +397,7 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
                 <Edit2 className="w-5 h-5" />
               </button>
               <button 
-                onClick={() => handleDelete(res.id)}
+                onClick={() => handleDeleteClick(res.id, res.title)}
                 className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                 title="Hapus"
               >
@@ -399,6 +407,21 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
           </div>
         ))}
       </div>
+
+      {/* Delete Resource Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!resourceToDelete}
+        onClose={() => setResourceToDelete(null)}
+        onConfirm={executeDeleteResource}
+        title="Hapus Materi Belajar"
+        message={
+          <>
+            Apakah Anda yakin ingin menghapus materi <strong className="text-gray-900 font-bold">&ldquo;{resourceToDelete?.title}&rdquo;</strong> secara permanen?
+          </>
+        }
+        confirmText="Ya, Hapus Materi"
+        variant="danger"
+      />
     </div>
   );
 }

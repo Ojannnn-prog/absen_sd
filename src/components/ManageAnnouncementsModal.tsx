@@ -5,6 +5,7 @@ import { X, Megaphone, Trash2, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import dynamic from 'next/dynamic';
 import { createAnnouncement, deleteAnnouncement } from "@/app/admin/actions";
+import ConfirmModal from "@/components/ConfirmModal";
 
 // Dynamic import for ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
@@ -21,6 +22,7 @@ export default function ManageAnnouncementsModal({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [announcementToDelete, setAnnouncementToDelete] = useState<{ id: string; title: string } | null>(null);
 
   const modules = {
     toolbar: [
@@ -60,8 +62,14 @@ export default function ManageAnnouncementsModal({
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus pengumuman ini secara permanen?")) return;
+  const handleDeleteClick = (id: string, annTitle: string) => {
+    setAnnouncementToDelete({ id, title: annTitle });
+  };
+
+  const executeDeleteAnnouncement = async () => {
+    if (!announcementToDelete) return;
+    const { id } = announcementToDelete;
+    setAnnouncementToDelete(null);
     
     setIsDeleting(id);
     const toastId = toast.loading("Menghapus...");
@@ -139,7 +147,7 @@ export default function ManageAnnouncementsModal({
                     <div className="flex justify-between items-start gap-2">
                       <h4 className="font-bold text-gray-900 text-sm line-clamp-1">{item.title}</h4>
                       <button 
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDeleteClick(item.id, item.title)}
                         disabled={isDeleting === item.id}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                         title="Hapus"
@@ -158,6 +166,21 @@ export default function ManageAnnouncementsModal({
           </div>
         </div>
       </div>
+
+      {/* Delete Announcement Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!announcementToDelete}
+        onClose={() => setAnnouncementToDelete(null)}
+        onConfirm={executeDeleteAnnouncement}
+        title="Hapus Pengumuman"
+        message={
+          <>
+            Apakah Anda yakin ingin menghapus pengumuman <strong className="text-gray-900 font-bold">&ldquo;{announcementToDelete?.title}&rdquo;</strong> secara permanen?
+          </>
+        }
+        confirmText="Ya, Hapus"
+        variant="danger"
+      />
     </div>
   );
 }
