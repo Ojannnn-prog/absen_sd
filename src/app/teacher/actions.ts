@@ -19,12 +19,19 @@ export async function getTeacherDashboardData() {
 
     const classGroup = teacher.classGroup || "A";
 
+    const totalResources = await prisma.courseResource.count();
+
     // Cari siswa yang hanya berada di kelas Guru ini
     const students = await prisma.student.findMany({
       where: { classGroup },
       include: {
         attendances: {
           orderBy: { timestamp: "desc" }
+        },
+        studentProgress: true,
+        quizAttempts: {
+          include: { resource: true },
+          orderBy: { createdAt: "desc" }
         },
       },
       orderBy: { name: "asc" }
@@ -60,6 +67,7 @@ export async function getTeacherDashboardData() {
     return {
       teacher,
       students: JSON.parse(JSON.stringify(students)),
+      totalResources,
       stats: {
         totalStudents: students.length,
         presentToday,

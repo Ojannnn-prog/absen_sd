@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Users, QrCode, Sparkles, User, ShieldCheck, CheckCircle2, Clock, AlertCircle, Award, Crown, ArrowRight } from "lucide-react";
+import { Users, QrCode, Sparkles, User, ShieldCheck, CheckCircle2, Clock, AlertCircle, Award, Crown, ArrowRight, Trophy } from "lucide-react";
 import Link from "next/link";
 import TeacherAvatarMaker from "@/components/TeacherAvatarMaker";
 import TeacherProfileEditor from "@/components/TeacherProfileEditor";
+import TeacherProgressTable from "@/components/TeacherProgressTable";
 import { getAvatarUrl } from "@/lib/avatar";
 
 interface Props {
@@ -17,10 +18,11 @@ interface Props {
     absenToday: number;
   };
   announcements: any[];
+  totalResources?: number;
 }
 
-export default function TeacherDashboardClient({ teacher, students, stats, announcements }: Props) {
-  const [activeTab, setActiveTab] = useState<"overview" | "avatar" | "profile">("overview");
+export default function TeacherDashboardClient({ teacher, students, stats, announcements, totalResources = 0 }: Props) {
+  const [activeTab, setActiveTab] = useState<"overview" | "progress" | "avatar" | "profile">("overview");
 
   const classGroup = teacher.classGroup || "A";
   const avatarUrl = getAvatarUrl(teacher.avatarConfig, teacher.profileImage, teacher.name, "P");
@@ -91,6 +93,17 @@ export default function TeacherDashboardClient({ teacher, students, stats, annou
           >
             <ShieldCheck className="w-4 h-4" />
             Ikhtisar Kelas 6{classGroup}
+          </button>
+          <button
+            onClick={() => setActiveTab("progress")}
+            className={`pb-4 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === "progress"
+                ? "border-green-600 text-green-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Trophy className="w-4 h-4 text-green-600" />
+            Progres Belajar Siswa
           </button>
           <button
             onClick={() => setActiveTab("avatar")}
@@ -214,6 +227,23 @@ export default function TeacherDashboardClient({ teacher, students, stats, annou
                 </table>
               </div>
             </div>
+
+            {/* Tabel Progres Belajar Siswa di Overview */}
+            <TeacherProgressTable
+              students={students}
+              totalResources={totalResources}
+              classGroup={classGroup}
+            />
+          </div>
+        )}
+
+        {activeTab === "progress" && (
+          <div className="animate-in fade-in duration-300">
+            <TeacherProgressTable
+              students={students}
+              totalResources={totalResources}
+              classGroup={classGroup}
+            />
           </div>
         )}
 

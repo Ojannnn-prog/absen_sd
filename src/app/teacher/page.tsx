@@ -15,6 +15,7 @@ export default async function TeacherDashboardPage() {
       students={data.students}
       stats={data.stats}
       announcements={data.announcements}
+      totalResources={data.totalResources || 0}
     />
   );
 }

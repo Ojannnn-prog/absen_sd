@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Search, Plus, Trash2, Edit2, QrCode, ArrowLeft, Loader2, X, Eye, EyeOff, ShieldCheck, Download, FileSpreadsheet, FileText, AlertCircle, AlertTriangle } from "lucide-react";
+import { Users, Search, Plus, Trash2, Edit2, QrCode, ArrowLeft, Loader2, X, Eye, EyeOff, ShieldCheck, Download, FileSpreadsheet, FileText, AlertCircle, AlertTriangle, Trophy } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import StudentQR from "@/components/StudentQR";
@@ -11,16 +11,18 @@ import autoTable from "jspdf-autotable";
 import { createStudentByTeacher, updateStudentByTeacher, deleteStudentByTeacher, recordManualAttendanceByTeacher, markRemainingAsAlphaByTeacher } from "./actions";
 import TeacherImportStudentsModal from "@/components/TeacherImportStudentsModal";
 import CityInput from "@/components/CityInput";
+import TeacherProgressTable from "@/components/TeacherProgressTable";
 
 interface Props {
   teacher: any;
   initialStudents: any[];
+  totalResources?: number;
 }
 
-export default function TeacherStudentClient({ teacher, initialStudents }: Props) {
+export default function TeacherStudentClient({ teacher, initialStudents, totalResources = 0 }: Props) {
   const [students, setStudents] = useState(initialStudents);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "unrecorded">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "unrecorded" | "progress">("all");
 
   // Modals
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -424,6 +426,17 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab("progress")}
+            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "progress"
+                ? "bg-green-600 text-white shadow-md shadow-green-600/20"
+                : "text-gray-600 hover:bg-green-50 hover:text-green-600"
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5" />
+            <span>Progres Belajar</span>
+          </button>
         </div>
 
         {activeTab === "unrecorded" && unrecordedStudentsCount > 0 && (
@@ -465,132 +478,143 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card-soft overflow-hidden bg-white border border-gray-100 shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-extrabold uppercase tracking-wider text-gray-500">
-                <th className="py-4 px-6">No</th>
-                <th className="py-4 px-6">Nama Siswa</th>
-                <th className="py-4 px-6">NIS / Username</th>
-                <th className="py-4 px-6">L/P</th>
-                <th className="py-4 px-6">Tempat, Tgl Lahir</th>
-                {activeTab === "unrecorded" && (
-                  <th className="py-4 px-4 text-center">Absensi Hari Ini</th>
-                )}
-                <th className="py-4 px-4 text-center">Rekap (H/I/A)</th>
-                <th className="py-4 px-6 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
-              {filteredStudents.map((s, idx) => {
-                const attToday = s.attendances?.find((a: any) => isTodayWIB(a.timestamp));
-                const currentStatus = attToday?.status || "";
-                let hadir = 0, izin = 0, alpha = 0;
-                s.attendances?.forEach((a: any) => {
-                  if (a.status === "Hadir") hadir++;
-                  else if (a.status === "Izin") izin++;
-                  else alpha++;
-                });
+      {/* Table / Progress Table */}
+      {activeTab === "progress" ? (
+        <TeacherProgressTable
+          students={filteredStudents}
+          totalResources={totalResources}
+          classGroup={classGroup}
+        />
+      ) : (
+        <div className="card-soft overflow-hidden bg-white border border-gray-100 shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-extrabold uppercase tracking-wider text-gray-500">
+                  <th className="py-4 px-6">No</th>
+                  <th className="py-4 px-6">Nama Siswa</th>
+                  <th className="py-4 px-6">NIS / Username</th>
+                  <th className="py-4 px-6">L/P</th>
+                  <th className="py-4 px-6">Tempat, Tgl Lahir</th>
+                  {activeTab === "unrecorded" && (
+                    <th className="py-4 px-4 text-center">Absensi Hari Ini</th>
+                  )}
+                  <th className="py-4 px-4 text-center">Rekap (H/I/A)</th>
+                  <th className="py-4 px-6 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {filteredStudents.map((s, idx) => {
+                  let hadir = 0;
+                  let izin = 0;
+                  let absen = 0;
 
-                return (
-                  <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-4 px-6 font-bold text-gray-400">{idx + 1}</td>
-                    <td className="py-4 px-6 font-bold text-gray-900">{s.name}</td>
-                    <td className="py-4 px-6 font-semibold text-gray-600">{s.studentCode}</td>
-                    <td className="py-4 px-6 font-bold text-gray-700">{s.gender}</td>
-                    <td className="py-4 px-6 text-gray-600">
-                      {s.birthPlace || "-"}{s.birthDate ? `, ${new Date(s.birthDate).toLocaleDateString("id-ID")}` : ""}
-                    </td>
-                    {activeTab === "unrecorded" && (
+                  s.attendances?.forEach((a: any) => {
+                    if (a.status === "Hadir") hadir++;
+                    else if (a.status === "Izin") izin++;
+                    else absen++;
+                  });
+
+                  // Tentukan status kehadiran HARI INI untuk indikator
+                  const attToday = s.attendances?.find((a: any) => isTodayWIB(a.timestamp));
+                  const currentStatus = attToday ? attToday.status : null;
+
+                  return (
+                    <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-4 px-6 font-bold text-gray-400">{idx + 1}</td>
+                      <td className="py-4 px-6 font-bold text-gray-900">{s.name}</td>
+                      <td className="py-4 px-6 font-semibold text-gray-600">{s.studentCode}</td>
+                      <td className="py-4 px-6 font-bold text-gray-700">{s.gender}</td>
+                      <td className="py-4 px-6 text-gray-600">
+                        {s.birthPlace || "-"}{s.birthDate ? `, ${new Date(s.birthDate).toLocaleDateString("id-ID")}` : ""}
+                      </td>
+                      {activeTab === "unrecorded" && (
+                        <td className="py-4 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {currentStatus === "Hadir" && (
+                              <span className="px-2.5 py-1 rounded-lg bg-green-100 text-green-700 font-bold text-xs ring-1 ring-green-300">
+                                ✓ Hadir (Scan QR)
+                              </span>
+                            )}
+                            <button
+                              onClick={() => handleManualAttendance(s.id, "Izin")}
+                              disabled={attendanceLoading === `${s.id}-Izin`}
+                              type="button"
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
+                                currentStatus === "Izin"
+                                  ? "bg-amber-500 text-white shadow-amber-500/30 ring-2 ring-amber-400"
+                                  : "bg-amber-100/80 hover:bg-amber-200 text-amber-800"
+                              } ${attendanceLoading === `${s.id}-Izin` ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                            >
+                              {attendanceLoading === `${s.id}-Izin` ? "..." : "Izin"}
+                            </button>
+                            <button
+                              onClick={() => handleManualAttendance(s.id, "Alpha")}
+                              disabled={attendanceLoading === `${s.id}-Alpha`}
+                              type="button"
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
+                                currentStatus === "Alpha"
+                                  ? "bg-red-600 text-white shadow-red-600/30 ring-2 ring-red-400"
+                                  : "bg-red-100/80 hover:bg-red-200 text-red-800"
+                              } ${attendanceLoading === `${s.id}-Alpha` ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                            >
+                              {attendanceLoading === `${s.id}-Alpha` ? "..." : "Alpha"}
+                            </button>
+                          </div>
+                        </td>
+                      )}
                       <td className="py-4 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          {currentStatus === "Hadir" && (
-                            <span className="px-2.5 py-1 rounded-lg bg-green-100 text-green-700 font-bold text-xs ring-1 ring-green-300">
-                              ✓ Hadir (Scan QR)
-                            </span>
-                          )}
+                        <div className="inline-flex items-center gap-1.5 bg-gray-100/80 px-3 py-1 rounded-full border border-gray-200/60 text-xs font-black">
+                          <span className="text-green-600" title="Hadir">{hadir}H</span>
+                          <span className="text-gray-300">|</span>
+                          <span className="text-amber-600" title="Izin">{izin}I</span>
+                          <span className="text-gray-300">|</span>
+                          <span className="text-red-600" title="Alpha">{absen}A</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => handleManualAttendance(s.id, "Izin")}
-                            disabled={attendanceLoading === `${s.id}-Izin`}
-                            type="button"
-                            className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                              currentStatus === "Izin"
-                                ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-2 ring-amber-300"
-                                : "bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-700"
-                            }`}
-                            title="Catat Izin"
+                            onClick={() => setSelectedQRStudent(s)}
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                            title="Lihat QR Code"
                           >
-                            Izin
+                            <QrCode className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleManualAttendance(s.id, "Alpha")}
-                            disabled={attendanceLoading === `${s.id}-Alpha`}
-                            type="button"
-                            className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                              currentStatus === "Alpha"
-                                ? "bg-red-600 text-white shadow-md shadow-red-600/25 ring-2 ring-red-300"
-                                : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-700"
-                            }`}
-                            title="Catat Alpha / Tidak Hadir"
+                            onClick={() => handleOpenEdit(s)}
+                            className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-xl transition-colors"
+                            title="Edit Siswa"
                           >
-                            Alpha
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(s.id, s.name)}
+                            className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-colors"
+                            title="Hapus Siswa"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
-                    )}
-                    <td className="py-4 px-4 text-center">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 text-xs font-extrabold">
-                        <span className="text-green-600">{hadir}H</span>
-                        <span className="text-gray-300">|</span>
-                        <span className="text-amber-600">{izin}I</span>
-                        <span className="text-gray-300">|</span>
-                        <span className="text-red-600">{alpha}A</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => setSelectedQRStudent(s)}
-                        className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl transition-colors"
-                        title="Lihat QR Code"
-                      >
-                        <QrCode className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenEdit(s)}
-                        className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-xl transition-colors"
-                        title="Edit Siswa"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(s.id, s.name)}
-                        className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-colors"
-                        title="Hapus Siswa"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                    </tr>
+                  );
+                })}
 
-              {filteredStudents.length === 0 && (
-                <tr>
-                  <td colSpan={activeTab === "unrecorded" ? 8 : 7} className="py-12 text-center text-gray-400 font-medium">
-                    {activeTab === "unrecorded"
-                      ? `✨ Hebat! Semua siswa Kelas 6${classGroup} sudah tercatat kehadirannya hari ini.`
-                      : `Tidak ada data siswa ditemukan di Kelas 6${classGroup}.`}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                {filteredStudents.length === 0 && (
+                  <tr>
+                    <td colSpan={activeTab === "unrecorded" ? 8 : 7} className="py-12 text-center text-gray-400 font-medium">
+                      {activeTab === "unrecorded"
+                        ? `✨ Hebat! Semua siswa Kelas 6${classGroup} sudah tercatat kehadirannya hari ini.`
+                        : `Tidak ada data siswa ditemukan di Kelas 6${classGroup}.`}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal Add Student */}
       {isAddOpen && (

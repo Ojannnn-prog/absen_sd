@@ -19,6 +19,8 @@ export default async function TeacherStudentPage() {
 
   const classGroup = teacher.classGroup || "A";
 
+  const totalResources = await prisma.courseResource.count();
+
   // Ambil hanya siswa dengan classGroup yang sama dengan Guru ini
   const students = await prisma.student.findMany({
     where: { classGroup },
@@ -26,13 +28,20 @@ export default async function TeacherStudentPage() {
     include: {
       attendances: true,
       studentProgress: true,
-      quizAttempts: true,
+      quizAttempts: {
+        include: { resource: true },
+        orderBy: { createdAt: 'desc' }
+      },
     }
   });
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <TeacherStudentClient teacher={teacher} initialStudents={JSON.parse(JSON.stringify(students))} />
+      <TeacherStudentClient 
+        teacher={teacher} 
+        initialStudents={JSON.parse(JSON.stringify(students))} 
+        totalResources={totalResources}
+      />
     </div>
   );
 }
