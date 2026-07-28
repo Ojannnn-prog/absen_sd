@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Search, Plus, Trash2, Edit2, QrCode, ArrowLeft, Loader2, X, Eye, EyeOff, ShieldCheck, Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Users, Search, Plus, Trash2, Edit2, QrCode, ArrowLeft, Loader2, X, Eye, EyeOff, ShieldCheck, Download, FileSpreadsheet, FileText, AlertCircle, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import StudentQR from "@/components/StudentQR";
@@ -27,6 +27,8 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [selectedQRStudent, setSelectedQRStudent] = useState<any>(null);
+  const [showBulkAlphaModal, setShowBulkAlphaModal] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<{ id: string; name: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState<"excel" | "pdf" | null>(null);
 
@@ -56,14 +58,16 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
     return !attToday;
   }).length;
 
-  const handleMarkAllAlpha = async () => {
+  const handleMarkAllAlphaClick = () => {
     if (unrecordedStudentsCount === 0) {
       toast.success("Semua siswa sudah tercatat kehadirannya hari ini.");
       return;
     }
-    if (!confirm(`Tandai ${unrecordedStudentsCount} siswa yang belum absen hari ini sebagai Alpha?`)) {
-      return;
-    }
+    setShowBulkAlphaModal(true);
+  };
+
+  const executeMarkAllAlpha = async () => {
+    setShowBulkAlphaModal(false);
     const toastId = toast.loading("Mencatat Alpha secara massal...");
     try {
       const res = await markRemainingAsAlphaByTeacher(classGroup);
@@ -187,8 +191,14 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
     }
   };
 
-  const handleDelete = async (id: string, sName: string) => {
-    if (!confirm(`Hapus siswa "${sName}" dari Kelas 6${classGroup}? Semua data absensinya akan terhapus.`)) return;
+  const handleDeleteClick = (id: string, name: string) => {
+    setStudentToDelete({ id, name });
+  };
+
+  const executeDeleteStudent = async () => {
+    if (!studentToDelete) return;
+    const { id } = studentToDelete;
+    setStudentToDelete(null);
 
     const toastId = toast.loading("Menghapus siswa...");
     try {
@@ -418,7 +428,7 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
 
         {activeTab === "unrecorded" && unrecordedStudentsCount > 0 && (
           <button
-            onClick={handleMarkAllAlpha}
+            onClick={handleMarkAllAlphaClick}
             className="btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-md shadow-red-600/25 transition-all cursor-pointer"
             title="Tandai semua siswa yang belum absen hari ini sebagai Alpha"
           >
@@ -556,7 +566,7 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(s.id, s.name)}
+                        onClick={() => handleDeleteClick(s.id, s.name)}
                         className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-colors"
                         title="Hapus Siswa"
                       >
@@ -812,6 +822,74 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
               studentCode={selectedQRStudent.studentCode}
               name={selectedQRStudent.name}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Alpha Confirmation Modal */}
+      {showBulkAlphaModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center flex flex-col items-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600 shadow-inner">
+                <AlertCircle className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2">Konfirmasi Absensi Massal</h3>
+              <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menandai <strong className="text-red-600 font-bold">{unrecordedStudentsCount} siswa</strong> yang belum absen hari ini sebagai <strong className="text-red-600 font-bold">Alpha (Tidak Hadir)</strong>? Data akan langsung tersimpan ke server.
+              </p>
+              
+              <div className="flex gap-3 w-full">
+                <button 
+                  type="button"
+                  onClick={() => setShowBulkAlphaModal(false)}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="button"
+                  onClick={executeMarkAllAlpha}
+                  className="flex-1 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-extrabold rounded-xl transition-all shadow-lg shadow-red-500/30 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Ya, Tandai Alpha</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Student Confirmation Modal */}
+      {studentToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center flex flex-col items-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600 shadow-inner">
+                <Trash2 className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2">Hapus Data Siswa</h3>
+              <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menghapus siswa <strong className="text-gray-900 font-bold">&ldquo;{studentToDelete.name}&rdquo;</strong> dari Kelas 6{classGroup}? Seluruh riwayat absensi dan data siswa ini akan terhapus secara permanen.
+              </p>
+              
+              <div className="flex gap-3 w-full">
+                <button 
+                  type="button"
+                  onClick={() => setStudentToDelete(null)}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="button"
+                  onClick={executeDeleteStudent}
+                  className="flex-1 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-extrabold rounded-xl transition-all shadow-lg shadow-red-500/30 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Ya, Hapus</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
