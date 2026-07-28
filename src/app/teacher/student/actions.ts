@@ -240,6 +240,11 @@ export async function importTeacherStudentsBulk(studentsData: any[], classGroup:
   }
 }
 
+function getStartOfTodayWIB(): Date {
+  const dateStrWIB = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+  return new Date(`${dateStrWIB}T00:00:00+07:00`);
+}
+
 export async function recordManualAttendanceByTeacher(studentId: string, status: "Hadir" | "Izin" | "Alpha") {
   try {
     const session = await getSession();
@@ -261,14 +266,13 @@ export async function recordManualAttendanceByTeacher(studentId: string, status:
       return { success: false, message: "Akses ditolak: Siswa bukan dari kelas Anda." };
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayWIB = getStartOfTodayWIB();
 
     const existing = await prisma.attendance.findFirst({
       where: {
         studentId: student.id,
         timestamp: {
-          gte: today,
+          gte: todayWIB,
         },
       },
     });
@@ -294,5 +298,61 @@ export async function recordManualAttendanceByTeacher(studentId: string, status:
   } catch (error: any) {
     console.error("recordManualAttendanceByTeacher error:", error);
     return { success: false, message: "Gagal mencatat absensi manual." };
+  }
+}
+
+export async function markRemainingAsAlphaByTeacher(classGroup: string) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "teacher") {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const teacher = await prisma.teacher.findUnique({
+      where: { id: session.id }
+    });
+    if (!teacher || teacher.classGroup !== classGroup) {
+      return { success: false, message: "Akses ditolak." };
+    }
+
+    const todayWIB = getStartOfTodayWIB();
+
+    // Find all students in this class
+    const students = await prisma.student.findMany({
+      where: { classGroup },
+      include: {
+        attendances: {
+          where: {
+            timestamp: {
+              gte: todayWIB,
+            }
+          }
+        }
+      }
+    });
+
+    const unrecordedStudents = students.filter(s => s.attendances.length === 0);
+    if (unrecordedStudents.length === 0) {
+      return { success: true, count: 0, message: "Semua siswa sudah tercatat kehadirannya hari ini." };
+    }
+
+    let markedCount = 0;
+    for (const student of unrecordedStudents) {
+      await prisma.attendance.create({
+        data: {
+          studentId: student.id,
+          status: "Alpha",
+        }
+      });
+      markedCount++;
+    }
+
+    revalidatePath("/teacher");
+    revalidatePath("/teacher/student");
+    revalidatePath("/student");
+    return { success: true, count: markedCount, message: `Berhasil mencatat Alpha untuk ${markedCount} siswa.` };
+  } catch (error: any) {
+    console.error("markRemainingAsAlphaByTeacher error:", error);
+    return { success: false, message: "Gagal mencatat Alpha massal." };
   }
 }

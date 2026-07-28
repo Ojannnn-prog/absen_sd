@@ -8,7 +8,7 @@ import StudentQR from "@/components/StudentQR";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { createStudentByTeacher, updateStudentByTeacher, deleteStudentByTeacher, recordManualAttendanceByTeacher } from "./actions";
+import { createStudentByTeacher, updateStudentByTeacher, deleteStudentByTeacher, recordManualAttendanceByTeacher, markRemainingAsAlphaByTeacher } from "./actions";
 import TeacherImportStudentsModal from "@/components/TeacherImportStudentsModal";
 import CityInput from "@/components/CityInput";
 
@@ -20,6 +20,7 @@ interface Props {
 export default function TeacherStudentClient({ teacher, initialStudents }: Props) {
   const [students, setStudents] = useState(initialStudents);
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "unrecorded">("all");
 
   // Modals
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -40,10 +41,66 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
 
   const classGroup = teacher.classGroup || "A";
 
-  const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
-    s.studentCode.includes(search)
-  );
+  const isTodayWIB = (timestamp: string | Date) => {
+    try {
+      const todayWIB = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+      const targetWIB = new Date(timestamp).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+      return todayWIB === targetWIB;
+    } catch {
+      return false;
+    }
+  };
+
+  const unrecordedStudentsCount = students.filter(s => {
+    const attToday = s.attendances?.find((a: any) => isTodayWIB(a.timestamp));
+    return !attToday;
+  }).length;
+
+  const handleMarkAllAlpha = async () => {
+    if (unrecordedStudentsCount === 0) {
+      toast.success("Semua siswa sudah tercatat kehadirannya hari ini.");
+      return;
+    }
+    if (!confirm(`Tandai ${unrecordedStudentsCount} siswa yang belum absen hari ini sebagai Alpha?`)) {
+      return;
+    }
+    const toastId = toast.loading("Mencatat Alpha secara massal...");
+    try {
+      const res = await markRemainingAsAlphaByTeacher(classGroup);
+      if (res.success) {
+        toast.success(res.message || "Berhasil mencatat Alpha massal.", { id: toastId });
+        setStudents(prev => prev.map(s => {
+          const hasToday = s.attendances?.find((a: any) => isTodayWIB(a.timestamp));
+          if (!hasToday) {
+            return {
+              ...s,
+              attendances: [
+                ...(s.attendances || []),
+                { id: `temp-${Date.now()}-${s.id}`, status: "Alpha", timestamp: new Date().toISOString() }
+              ]
+            };
+          }
+          return s;
+        }));
+      } else {
+        toast.error(res.message || "Gagal mencatat Alpha massal.", { id: toastId });
+      }
+    } catch {
+      toast.error("Terjadi kesalahan sistem.", { id: toastId });
+    }
+  };
+
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || 
+      s.studentCode.includes(search);
+    if (!matchesSearch) return false;
+
+    if (activeTab === "unrecorded") {
+      const attToday = s.attendances?.find((a: any) => isTodayWIB(a.timestamp));
+      return !attToday;
+    }
+    return true;
+  });
 
   const handleOpenEdit = (student: any) => {
     setSelectedStudent(student);
@@ -327,6 +384,59 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
         </div>
       </div>
 
+      {/* Tab Switcher & Unrecorded Notice */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-gray-100/70 p-2 rounded-2xl border border-gray-200/60">
+        <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl shadow-sm">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
+              activeTab === "all"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            Semua Siswa (6{classGroup})
+          </button>
+          <button
+            onClick={() => setActiveTab("unrecorded")}
+            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === "unrecorded"
+                ? "bg-red-600 text-white shadow-md shadow-red-600/20"
+                : "text-gray-600 hover:bg-red-50 hover:text-red-600"
+            }`}
+          >
+            <span>Belum Absen Hari Ini</span>
+            {unrecordedStudentsCount > 0 && (
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                activeTab === "unrecorded" ? "bg-white text-red-600" : "bg-red-600 text-white"
+              }`}>
+                {unrecordedStudentsCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {activeTab === "unrecorded" && unrecordedStudentsCount > 0 && (
+          <button
+            onClick={handleMarkAllAlpha}
+            className="btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-md shadow-red-600/25 transition-all cursor-pointer"
+            title="Tandai semua siswa yang belum absen hari ini sebagai Alpha"
+          >
+            <span>⚡ Tandai Semua Sisa Sebagai Alpha ({unrecordedStudentsCount})</span>
+          </button>
+        )}
+      </div>
+
+      {activeTab === "unrecorded" && (
+        <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl flex items-center gap-3 text-amber-900 text-xs font-medium">
+          <div className="p-2 bg-amber-500/20 rounded-xl text-amber-700 font-bold shrink-0">ℹ Info WIB</div>
+          <div>
+            <p className="font-bold">Daftar Siswa Belum Hadir / Belum Absen Hari Ini</p>
+            <p>Daftar ini di-reset otomatis setiap hari pukul <strong>00:00 WIB (Jakarta)</strong>. Siswa yang sudah melakukan scan barcode atau dicatat Izin/Alpha akan otomatis hilang dari daftar ini dan tersimpan ke database.</p>
+          </div>
+        </div>
+      )}
+
       {/* Filter / Search Bar */}
       <div className="card-soft p-4 bg-white border border-gray-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
@@ -363,9 +473,7 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {filteredStudents.map((s, idx) => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const attToday = s.attendances?.find((a: any) => new Date(a.timestamp) >= today);
+                const attToday = s.attendances?.find((a: any) => isTodayWIB(a.timestamp));
                 const currentStatus = attToday?.status || "";
                 let hadir = 0, izin = 0, alpha = 0;
                 s.attendances?.forEach((a: any) => {
@@ -385,19 +493,11 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
                     </td>
                     <td className="py-4 px-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => handleManualAttendance(s.id, "Hadir")}
-                          disabled={attendanceLoading === `${s.id}-Hadir`}
-                          type="button"
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                            currentStatus === "Hadir"
-                              ? "bg-green-600 text-white shadow-md shadow-green-600/25 ring-2 ring-green-300"
-                              : "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-700"
-                          }`}
-                          title="Catat Hadir"
-                        >
-                          Hadir
-                        </button>
+                        {currentStatus === "Hadir" && (
+                          <span className="px-2.5 py-1 rounded-lg bg-green-100 text-green-700 font-bold text-xs ring-1 ring-green-300">
+                            ✓ Hadir (Scan QR)
+                          </span>
+                        )}
                         <button
                           onClick={() => handleManualAttendance(s.id, "Izin")}
                           disabled={attendanceLoading === `${s.id}-Izin`}
@@ -467,7 +567,9 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
               {filteredStudents.length === 0 && (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-gray-400 font-medium">
-                    Tidak ada data siswa ditemukan di Kelas 6{classGroup}.
+                    {activeTab === "unrecorded"
+                      ? `✨ Hebat! Semua siswa Kelas 6${classGroup} sudah tercatat kehadirannya hari ini.`
+                      : `Tidak ada data siswa ditemukan di Kelas 6${classGroup}.`}
                   </td>
                 </tr>
               )}
