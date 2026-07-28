@@ -466,7 +466,9 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
                 <th className="py-4 px-6">NIS / Username</th>
                 <th className="py-4 px-6">L/P</th>
                 <th className="py-4 px-6">Tempat, Tgl Lahir</th>
-                <th className="py-4 px-4 text-center">Absensi Hari Ini</th>
+                {activeTab === "unrecorded" && (
+                  <th className="py-4 px-4 text-center">Absensi Hari Ini</th>
+                )}
                 <th className="py-4 px-4 text-center">Rekap (H/I/A)</th>
                 <th className="py-4 px-6 text-right">Aksi</th>
               </tr>
@@ -491,41 +493,43 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
                     <td className="py-4 px-6 text-gray-600">
                       {s.birthPlace || "-"}{s.birthDate ? `, ${new Date(s.birthDate).toLocaleDateString("id-ID")}` : ""}
                     </td>
-                    <td className="py-4 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {currentStatus === "Hadir" && (
-                          <span className="px-2.5 py-1 rounded-lg bg-green-100 text-green-700 font-bold text-xs ring-1 ring-green-300">
-                            ✓ Hadir (Scan QR)
-                          </span>
-                        )}
-                        <button
-                          onClick={() => handleManualAttendance(s.id, "Izin")}
-                          disabled={attendanceLoading === `${s.id}-Izin`}
-                          type="button"
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                            currentStatus === "Izin"
-                              ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-2 ring-amber-300"
-                              : "bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-700"
-                          }`}
-                          title="Catat Izin"
-                        >
-                          Izin
-                        </button>
-                        <button
-                          onClick={() => handleManualAttendance(s.id, "Alpha")}
-                          disabled={attendanceLoading === `${s.id}-Alpha`}
-                          type="button"
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                            currentStatus === "Alpha"
-                              ? "bg-red-600 text-white shadow-md shadow-red-600/25 ring-2 ring-red-300"
-                              : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-700"
-                          }`}
-                          title="Catat Alpha / Tidak Hadir"
-                        >
-                          Alpha
-                        </button>
-                      </div>
-                    </td>
+                    {activeTab === "unrecorded" && (
+                      <td className="py-4 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {currentStatus === "Hadir" && (
+                            <span className="px-2.5 py-1 rounded-lg bg-green-100 text-green-700 font-bold text-xs ring-1 ring-green-300">
+                              ✓ Hadir (Scan QR)
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleManualAttendance(s.id, "Izin")}
+                            disabled={attendanceLoading === `${s.id}-Izin`}
+                            type="button"
+                            className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                              currentStatus === "Izin"
+                                ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-2 ring-amber-300"
+                                : "bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-700"
+                            }`}
+                            title="Catat Izin"
+                          >
+                            Izin
+                          </button>
+                          <button
+                            onClick={() => handleManualAttendance(s.id, "Alpha")}
+                            disabled={attendanceLoading === `${s.id}-Alpha`}
+                            type="button"
+                            className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                              currentStatus === "Alpha"
+                                ? "bg-red-600 text-white shadow-md shadow-red-600/25 ring-2 ring-red-300"
+                                : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-700"
+                            }`}
+                            title="Catat Alpha / Tidak Hadir"
+                          >
+                            Alpha
+                          </button>
+                        </div>
+                      </td>
+                    )}
                     <td className="py-4 px-4 text-center">
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 text-xs font-extrabold">
                         <span className="text-green-600">{hadir}H</span>
@@ -566,7 +570,7 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
 
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400 font-medium">
+                  <td colSpan={activeTab === "unrecorded" ? 8 : 7} className="py-12 text-center text-gray-400 font-medium">
                     {activeTab === "unrecorded"
                       ? `✨ Hebat! Semua siswa Kelas 6${classGroup} sudah tercatat kehadirannya hari ini.`
                       : `Tidak ada data siswa ditemukan di Kelas 6${classGroup}.`}
