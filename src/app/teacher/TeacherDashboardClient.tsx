@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
 import { Users, QrCode, Sparkles, User, ShieldCheck, CheckCircle2, Clock, AlertCircle, Award, Crown, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import TeacherAvatarMaker from "@/components/TeacherAvatarMaker";
@@ -28,8 +27,6 @@ export default function TeacherDashboardClient({ teacher, students, stats, annou
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-16">
-      <Navbar role="teacher" />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
         {/* Header Banner */}
         <div className="card-soft p-6 md:p-8 bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 text-white rounded-3xl shadow-xl relative overflow-hidden">
@@ -37,13 +34,13 @@ export default function TeacherDashboardClient({ teacher, students, stats, annou
           <div className="absolute right-20 top-0 w-32 h-32 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
 
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-            <div className="flex items-center gap-5">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5 w-full">
               <div className="w-20 h-20 rounded-2xl bg-white/10 p-1 border-2 border-white/20 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
                 <img src={avatarUrl} alt={teacher.name} className="w-full h-full object-cover rounded-xl" />
               </div>
 
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
+              <div className="w-full">
+                <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                   <span className="px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-300 font-extrabold text-xs flex items-center gap-1">
                     <Crown className="w-3.5 h-3.5" />
                     Wali Kelas 6{classGroup}

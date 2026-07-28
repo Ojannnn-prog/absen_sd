@@ -123,7 +123,7 @@ export default function Navbar({ role }: { role: string | null }) {
 
       {/* Mobile Dropdown Menu (Overlay) */}
       {isOpen && role && (
-        <div className="absolute top-full left-0 w-full bg-white shadow-xl border-b border-gray-100 md:hidden animate-in slide-in-from-top-2 duration-200 z-50">
+        <div className="absolute top-full left-0 right-0 w-full bg-white shadow-xl border-b border-gray-100 md:hidden animate-in slide-in-from-top-2 duration-200 z-50 overflow-hidden">
           <div className="flex flex-col p-4 gap-2">
             <NavLinks />
             <div className="h-px bg-gray-100 my-2 w-full"></div>
