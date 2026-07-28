@@ -60,3 +60,31 @@ export async function deleteStudent(id: string) {
     return { success: false, message: "Gagal menghapus siswa" };
   }
 }
+
+export async function bulkUpdateStudentClass(studentIds: string[], targetClass: string) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "admin") return { success: false, message: "Unauthorized" };
+
+    if (!["A", "B", "C"].includes(targetClass)) {
+      return { success: false, message: "Kelas tidak valid" };
+    }
+
+    await prisma.student.updateMany({
+      where: {
+        id: {
+          in: studentIds,
+        },
+      },
+      data: {
+        classGroup: targetClass,
+      },
+    });
+
+    revalidatePath("/admin/student");
+    return { success: true };
+  } catch (error: any) {
+    console.error("bulkUpdateStudentClass error:", error);
+    return { success: false, message: "Gagal memindahkan kelas siswa" };
+  }
+}

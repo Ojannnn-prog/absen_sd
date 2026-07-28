@@ -166,3 +166,133 @@ export async function deleteStudentByTeacher(id: string) {
     return { success: false, message: "Gagal menghapus siswa" };
   }
 }
+
+export async function importTeacherStudentsBulk(studentsData: any[], classGroup: string) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "teacher") {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const teacher = await prisma.teacher.findUnique({
+      where: { id: session.id }
+    });
+
+    if (!teacher || teacher.classGroup !== classGroup) {
+      return { success: false, message: "Akses ditolak: Anda hanya dapat mengimpor siswa ke kelas Anda sendiri" };
+    }
+
+    if (!studentsData || studentsData.length === 0) {
+      return { success: false, message: "Data siswa kosong" };
+    }
+
+    const defaultPassword = "231Sukaasih";
+    const hashedPassword = await hashPassword(defaultPassword);
+
+    const lastStudent = await prisma.student.findFirst({
+      orderBy: { studentCode: 'desc' }
+    });
+    
+    let nextSequence = 1;
+    if (lastStudent && lastStudent.studentCode.startsWith('2312026')) {
+      const lastSeqStr = lastStudent.studentCode.slice(7);
+      const lastSeqNum = parseInt(lastSeqStr, 10);
+      if (!isNaN(lastSeqNum)) {
+        nextSequence = lastSeqNum + 1;
+      }
+    }
+    
+    const newStudents = studentsData.map((student, index) => {
+      const sequence = String(nextSequence + index).padStart(3, "0");
+      const studentCode = `2312026${sequence}`;
+      
+      let birthDate = null;
+      if (student.birthDate) {
+        const parsed = new Date(student.birthDate);
+        if (!isNaN(parsed.getTime())) {
+          birthDate = parsed;
+        }
+      }
+
+      return {
+        name: student.name || "Tanpa Nama",
+        gender: student.gender === "P" || student.gender === "Perempuan" ? "P" : "L",
+        birthPlace: student.birthPlace || null,
+        birthDate: birthDate,
+        studentCode: studentCode,
+        username: studentCode,
+        classGroup: teacher.classGroup || "A", // Paksa ke kelas guru
+        password: hashedPassword,
+      };
+    });
+
+    const result = await prisma.student.createMany({
+      data: newStudents,
+      skipDuplicates: true
+    });
+
+    revalidatePath("/teacher/student");
+    revalidatePath("/teacher");
+    return { success: true, count: result.count };
+  } catch (error: any) {
+    console.error("Teacher Bulk Import Error:", error);
+    return { success: false, message: "Terjadi kesalahan sistem saat menyimpan data." };
+  }
+}
+
+export async function recordManualAttendanceByTeacher(studentId: string, status: "Hadir" | "Izin" | "Alpha") {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "teacher") {
+      return { success: false, message: "Unauthorized: Anda bukan Guru." };
+    }
+
+    const teacher = await prisma.teacher.findUnique({
+      where: { id: session.id }
+    });
+    if (!teacher) {
+      return { success: false, message: "Guru tidak ditemukan." };
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentId }
+    });
+    if (!student || student.classGroup !== teacher.classGroup) {
+      return { success: false, message: "Akses ditolak: Siswa bukan dari kelas Anda." };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existing = await prisma.attendance.findFirst({
+      where: {
+        studentId: student.id,
+        timestamp: {
+          gte: today,
+        },
+      },
+    });
+
+    if (existing) {
+      await prisma.attendance.update({
+        where: { id: existing.id },
+        data: { status },
+      });
+    } else {
+      await prisma.attendance.create({
+        data: {
+          studentId: student.id,
+          status,
+        },
+      });
+    }
+
+    revalidatePath("/teacher");
+    revalidatePath("/teacher/student");
+    revalidatePath("/student");
+    return { success: true };
+  } catch (error: any) {
+    console.error("recordManualAttendanceByTeacher error:", error);
+    return { success: false, message: "Gagal mencatat absensi manual." };
+  }
+}

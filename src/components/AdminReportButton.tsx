@@ -42,6 +42,8 @@ export default function AdminReportButton({ students }: Props) {
       const tableData = students.map((s, index) => {
         // Calculate points
         const presentCount = s.attendances?.filter((a:any) => a.status === 'Hadir').length || 0;
+        const izinCount = s.attendances?.filter((a:any) => a.status === 'Izin').length || 0;
+        const alphaCount = s.attendances?.filter((a:any) => a.status !== 'Hadir' && a.status !== 'Izin').length || 0;
         const attendancePoints = (s.attendances?.length || 0) * 2;
         const progressPoints = (s.studentProgress?.length || 0) * 5;
         const passedQuizzes = s.quizAttempts?.filter((q:any) => q.passed).length || 0;
@@ -64,6 +66,7 @@ export default function AdminReportButton({ students }: Props) {
           s.name,
           s.studentCode,
           `6${s.classGroup || "A"}`,
+          `${presentCount}H / ${izinCount}I / ${alphaCount}A`,
           `${totalScore} Poin`,
           `${attPercent}%`,
           avgQuiz.toString()
@@ -72,7 +75,7 @@ export default function AdminReportButton({ students }: Props) {
 
       autoTable(doc, {
         startY: 50,
-        head: [['No', 'Nama Siswa', 'NIS', 'Kelas', 'Total Poin', 'Kehadiran (%)', 'Rata-rata Kuis']],
+        head: [['No', 'Nama Siswa', 'NIS', 'Kelas', 'Rekap (H/I/A)', 'Total Poin', 'Kehadiran (%)', 'Rata-rata Kuis']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [79, 70, 229] }, // Indigo-600

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Key, Save, Crown, Palette, Sparkles, Loader2 } from "lucide-react";
+import { User, Key, Save, Crown, Palette, Sparkles, Loader2, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateTeacherProfile } from "@/app/teacher/actions";
 import { useRouter } from "next/navigation";
@@ -32,6 +32,7 @@ export default function TeacherProfileEditor({ teacher }: Props) {
   const [name, setName] = useState(teacher.name || "");
   const [nickname, setNickname] = useState(teacher.nickname || "");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [activeTheme, setActiveTheme] = useState(teacher.activeTheme || "default");
   const [activeTitle, setActiveTitle] = useState(teacher.activeTitle || "Guru Kelas 6");
   const [loading, setLoading] = useState(false);
@@ -154,13 +155,23 @@ export default function TeacherProfileEditor({ teacher }: Props) {
           <Key className="w-4 h-4 text-gray-500" />
           Ubah Password (Opsional)
         </label>
-        <input 
-          type="password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 font-medium"
-          placeholder="Kosongkan jika tidak ingin mengubah password"
-        />
+        <div className="relative">
+          <input 
+            type={showPassword ? "text" : "password"} 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 font-medium"
+            placeholder="Kosongkan jika tidak ingin mengubah password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1.5 rounded-lg transition-colors cursor-pointer"
+            title={showPassword ? "Sembunyikan password" : "Lihat password"}
+          >
+            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       <div className="flex justify-end pt-2">

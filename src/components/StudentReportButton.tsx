@@ -48,8 +48,8 @@ export default function StudentReportButton({ student, totalScore, levelInfo }: 
 
       // Attendance Stats
       const presentCount = student.attendances.filter((a: any) => a.status === 'Hadir').length;
-      const sickCount = student.attendances.filter((a: any) => a.status === 'Sakit').length;
       const permissionCount = student.attendances.filter((a: any) => a.status === 'Izin').length;
+      const alphaCount = student.attendances.filter((a: any) => a.status === 'Alpha' || (a.status !== 'Hadir' && a.status !== 'Izin')).length;
       
       doc.setFontSize(14);
       doc.setTextColor(33, 33, 33);
@@ -57,11 +57,11 @@ export default function StudentReportButton({ student, totalScore, levelInfo }: 
 
       autoTable(doc, {
         startY: 75,
-        head: [['Hadir', 'Sakit', 'Izin', 'Total Catatan']],
+        head: [['Hadir', 'Izin', 'Alpha / Tanpa Keterangan', 'Total Catatan']],
         body: [[
           `${presentCount} Hari`, 
-          `${sickCount} Hari`, 
           `${permissionCount} Hari`, 
+          `${alphaCount} Hari`, 
           `${student.attendances.length} Hari`
         ]],
         theme: 'grid',

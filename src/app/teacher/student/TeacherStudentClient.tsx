@@ -8,7 +8,9 @@ import StudentQR from "@/components/StudentQR";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { createStudentByTeacher, updateStudentByTeacher, deleteStudentByTeacher } from "./actions";
+import { createStudentByTeacher, updateStudentByTeacher, deleteStudentByTeacher, recordManualAttendanceByTeacher } from "./actions";
+import TeacherImportStudentsModal from "@/components/TeacherImportStudentsModal";
+import CityInput from "@/components/CityInput";
 
 interface Props {
   teacher: any;
@@ -145,6 +147,39 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
     }
   };
 
+  const [attendanceLoading, setAttendanceLoading] = useState<string | null>(null);
+
+  const handleManualAttendance = async (studentId: string, status: "Hadir" | "Izin" | "Alpha") => {
+    setAttendanceLoading(`${studentId}-${status}`);
+    const toastId = toast.loading(`Mencatat absensi (${status})...`);
+    try {
+      const res = await recordManualAttendanceByTeacher(studentId, status);
+      if (res.success) {
+        toast.success(`Absensi dicatat: ${status}`, { id: toastId });
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        setStudents(prev => prev.map(s => {
+          if (s.id !== studentId) return s;
+          const existingAtts = s.attendances || [];
+          const idx = existingAtts.findIndex((a: any) => new Date(a.timestamp) >= today);
+          let newAtts = [...existingAtts];
+          if (idx >= 0) {
+            newAtts[idx] = { ...newAtts[idx], status };
+          } else {
+            newAtts.unshift({ id: Math.random().toString(), studentId, status, timestamp: new Date().toISOString() });
+          }
+          return { ...s, attendances: newAtts };
+        }));
+      } else {
+        toast.error(res.message || "Gagal mencatat absensi", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem", { id: toastId });
+    } finally {
+      setAttendanceLoading(null);
+    }
+  };
+
   const exportExcel = () => {
     setExportLoading("excel");
     try {
@@ -256,10 +291,14 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <TeacherImportStudentsModal
+            classGroup={classGroup}
+            onImportSuccess={() => window.location.reload()}
+          />
           <button
             onClick={exportExcel}
             disabled={exportLoading !== null}
-            className="btn bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2"
+            className="btn bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4" />
             <span>Excel (6{classGroup})</span>
@@ -317,26 +356,86 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
                 <th className="py-4 px-6">NIS / Username</th>
                 <th className="py-4 px-6">L/P</th>
                 <th className="py-4 px-6">Tempat, Tgl Lahir</th>
-                <th className="py-4 px-6 text-center">Kehadiran</th>
+                <th className="py-4 px-4 text-center">Absensi Hari Ini</th>
+                <th className="py-4 px-4 text-center">Rekap (H/I/A)</th>
                 <th className="py-4 px-6 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
-              {filteredStudents.map((s, idx) => (
-                <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-4 px-6 font-bold text-gray-400">{idx + 1}</td>
-                  <td className="py-4 px-6 font-bold text-gray-900">{s.name}</td>
-                  <td className="py-4 px-6 font-semibold text-gray-600">{s.studentCode}</td>
-                  <td className="py-4 px-6 font-bold text-gray-700">{s.gender}</td>
-                  <td className="py-4 px-6 text-gray-600">
-                    {s.birthPlace || "-"}{s.birthDate ? `, ${new Date(s.birthDate).toLocaleDateString("id-ID")}` : ""}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    <span className="inline-block px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs">
-                      {s.attendances?.length || 0} Kali
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right">
+              {filteredStudents.map((s, idx) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const attToday = s.attendances?.find((a: any) => new Date(a.timestamp) >= today);
+                const currentStatus = attToday?.status || "";
+                let hadir = 0, izin = 0, alpha = 0;
+                s.attendances?.forEach((a: any) => {
+                  if (a.status === "Hadir") hadir++;
+                  else if (a.status === "Izin") izin++;
+                  else alpha++;
+                });
+
+                return (
+                  <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6 font-bold text-gray-400">{idx + 1}</td>
+                    <td className="py-4 px-6 font-bold text-gray-900">{s.name}</td>
+                    <td className="py-4 px-6 font-semibold text-gray-600">{s.studentCode}</td>
+                    <td className="py-4 px-6 font-bold text-gray-700">{s.gender}</td>
+                    <td className="py-4 px-6 text-gray-600">
+                      {s.birthPlace || "-"}{s.birthDate ? `, ${new Date(s.birthDate).toLocaleDateString("id-ID")}` : ""}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => handleManualAttendance(s.id, "Hadir")}
+                          disabled={attendanceLoading === `${s.id}-Hadir`}
+                          type="button"
+                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                            currentStatus === "Hadir"
+                              ? "bg-green-600 text-white shadow-md shadow-green-600/25 ring-2 ring-green-300"
+                              : "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-700"
+                          }`}
+                          title="Catat Hadir"
+                        >
+                          Hadir
+                        </button>
+                        <button
+                          onClick={() => handleManualAttendance(s.id, "Izin")}
+                          disabled={attendanceLoading === `${s.id}-Izin`}
+                          type="button"
+                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                            currentStatus === "Izin"
+                              ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-2 ring-amber-300"
+                              : "bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-700"
+                          }`}
+                          title="Catat Izin"
+                        >
+                          Izin
+                        </button>
+                        <button
+                          onClick={() => handleManualAttendance(s.id, "Alpha")}
+                          disabled={attendanceLoading === `${s.id}-Alpha`}
+                          type="button"
+                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                            currentStatus === "Alpha"
+                              ? "bg-red-600 text-white shadow-md shadow-red-600/25 ring-2 ring-red-300"
+                              : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-700"
+                          }`}
+                          title="Catat Alpha / Tidak Hadir"
+                        >
+                          Alpha
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 text-xs font-extrabold">
+                        <span className="text-green-600">{hadir}H</span>
+                        <span className="text-gray-300">|</span>
+                        <span className="text-amber-600">{izin}I</span>
+                        <span className="text-gray-300">|</span>
+                        <span className="text-red-600">{alpha}A</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => setSelectedQRStudent(s)}
@@ -362,11 +461,12 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+            })}
 
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400 font-medium">
+                  <td colSpan={8} className="py-12 text-center text-gray-400 font-medium">
                     Tidak ada data siswa ditemukan di Kelas 6{classGroup}.
                   </td>
                 </tr>
@@ -450,12 +550,9 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-1">Tempat Lahir</label>
-                    <input
-                      type="text"
-                      value={birthPlace}
-                      onChange={(e) => setBirthPlace(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl"
-                      placeholder="Bandung"
+                    <CityInput
+                      defaultValue={birthPlace}
+                      onChangeValue={(val) => setBirthPlace(val)}
                     />
                   </div>
                   <div>
@@ -544,11 +641,9 @@ export default function TeacherStudentClient({ teacher, initialStudents }: Props
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Tempat Lahir</label>
-                  <input
-                    type="text"
-                    value={birthPlace}
-                    onChange={(e) => setBirthPlace(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl"
+                  <CityInput
+                    defaultValue={birthPlace}
+                    onChangeValue={(val) => setBirthPlace(val)}
                   />
                 </div>
                 <div>

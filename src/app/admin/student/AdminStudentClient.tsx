@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateStudent, deleteStudent } from "./actions";
+import { updateStudent, deleteStudent, bulkUpdateStudentClass } from "./actions";
 import toast from "react-hot-toast";
 import { Search, Edit2, Trash2, Download, Eye, EyeOff, Loader2, X, Save, User as UserIcon } from "lucide-react";
 import QRCode from "qrcode";
@@ -143,6 +143,50 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
     return matchesSearch && matchesClass;
   });
 
+  // Bulk selection state & handlers
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [targetClassBulk, setTargetClassBulk] = useState<string>("B");
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
+
+  const allSelected = filteredStudents.length > 0 && filteredStudents.every(s => selectedIds.includes(s.id));
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(selectedIds.filter(id => !filteredStudents.some(s => s.id === id)));
+    } else {
+      const newIds = new Set([...selectedIds, ...filteredStudents.map(s => s.id)]);
+      setSelectedIds(Array.from(newIds));
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(i => i !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleBulkMove = async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkLoading(true);
+    toast.loading(`Memindahkan ${selectedIds.length} siswa ke Kelas 6${targetClassBulk}...`, { id: "bulk" });
+    try {
+      const res = await bulkUpdateStudentClass(selectedIds, targetClassBulk);
+      if (res.success) {
+        toast.success(`${selectedIds.length} siswa berhasil dipindahkan ke Kelas 6${targetClassBulk}`, { id: "bulk" });
+        setStudents(students.map(s => selectedIds.includes(s.id) ? { ...s, classGroup: targetClassBulk } : s));
+        setSelectedIds([]);
+      } else {
+        toast.error(res.message || "Gagal memindahkan siswa", { id: "bulk" });
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem", { id: "bulk" });
+    } finally {
+      setIsBulkLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
       <div className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -190,11 +234,58 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
         </div>
       </div>
 
+      {/* Bulk Actions Banner */}
+      {selectedIds.length > 0 && (
+        <div className="bg-indigo-900 text-white p-4 rounded-2xl shadow-lg flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-3">
+            <span className="bg-indigo-700 px-3 py-1 rounded-xl font-black text-sm">
+              {selectedIds.length} Terpilih
+            </span>
+            <span className="text-sm font-medium text-indigo-100">
+              Pindahkan siswa terpilih ke kelas lain:
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={targetClassBulk}
+              onChange={(e) => setTargetClassBulk(e.target.value)}
+              className="bg-indigo-800 border border-indigo-700 text-white font-bold rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              <option value="A">Kelas 6A</option>
+              <option value="B">Kelas 6B</option>
+              <option value="C">Kelas 6C</option>
+            </select>
+            <button
+              onClick={handleBulkMove}
+              disabled={isBulkLoading}
+              className="bg-amber-400 hover:bg-amber-500 text-gray-900 font-extrabold px-5 py-2 rounded-xl text-sm transition-all shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+            >
+              {isBulkLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Pindahkan Sekarang
+            </button>
+            <button
+              onClick={() => setSelectedIds([])}
+              className="text-indigo-300 hover:text-white px-2 py-1 text-xs font-bold cursor-pointer"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="py-4 px-4 w-12 text-center">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  />
+                </th>
                 <th className="py-4 px-6 font-bold text-gray-600">Profil</th>
                 <th className="py-4 px-6 font-bold text-gray-600">Gamifikasi</th>
                 <th className="py-4 px-6 font-bold text-gray-600">Kata Sandi</th>
@@ -207,7 +298,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
             <tbody className="divide-y divide-gray-100">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500 font-medium">
+                  <td colSpan={8} className="py-12 text-center text-gray-500 font-medium">
                     {search ? "Pencarian tidak ditemukan." : "Belum ada data siswa."}
                   </td>
                 </tr>
@@ -216,6 +307,14 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                   const isPassVisible = visiblePasswords[student.id];
                   return (
                     <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-4 px-4 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(student.id)}
+                          onChange={() => handleSelectOne(student.id)}
+                          className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        />
+                      </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border-2 border-white shadow-sm flex items-center justify-center">

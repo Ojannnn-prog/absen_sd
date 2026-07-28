@@ -5,16 +5,22 @@ import { MapPin, Check, Loader2, Map } from "lucide-react";
 
 export default function CityInput({ 
   defaultValue = "", 
-  name = "birthPlace" 
+  name = "birthPlace",
+  onChangeValue
 }: { 
   defaultValue?: string,
-  name?: string 
+  name?: string,
+  onChangeValue?: (val: string) => void
 }) {
   const [value, setValue] = useState(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -73,6 +79,7 @@ export default function CityInput({
         value={value}
         onChange={(e) => {
           setValue(e.target.value);
+          onChangeValue?.(e.target.value);
           setIsOpen(true);
         }}
         onFocus={() => setIsOpen(true)}
@@ -96,6 +103,7 @@ export default function CityInput({
                   key={idx}
                   onClick={() => {
                     setValue(item.formatStr);
+                    onChangeValue?.(item.formatStr);
                     setIsOpen(false);
                   }}
                   className={`px-4 py-3 text-sm cursor-pointer hover:bg-indigo-50 transition-colors flex items-start gap-3 border-b border-gray-50 last:border-0 ${
