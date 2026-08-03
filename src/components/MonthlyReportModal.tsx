@@ -226,7 +226,7 @@ export default function MonthlyReportModal({
       doc.setTextColor(55, 65, 81);
       doc.text(`Bandung, ${format(new Date(), "dd MMMM yyyy", { locale: localeId })}`, 225, signY);
       doc.text("Mengetahui,", 225, signY + 6);
-      doc.text(role === "admin" ? "Administrator Sekolah" : "Wali Kelas", 225, signY + 26);
+      doc.text(role === "admin" ? "Administrator Sekolah" : `Wali ${classGroupLabel}`, 225, signY + 26);
       doc.setFont("helvetica", "bold");
       doc.text("SDN 231 Sukaasih", 225, signY + 32);
 
@@ -371,7 +371,17 @@ export default function MonthlyReportModal({
                   Izin, Alpha, persentase kehadiran tiap siswa, dan kolom tanda tangan resmi.
                 </span>
               </div>
+
+              {role === "teacher" && (
+                <div className="text-xs text-amber-700 bg-amber-50 p-3.5 rounded-xl border border-amber-200/70 flex items-start gap-2 shadow-sm">
+                  <span className="text-amber-600 font-bold text-sm">🔒</span>
+                  <span>
+                    <strong>Akses Khusus Guru:</strong> Sesuai ketentuan pengampuan SDN 231 Sukaasih, laporan ini hanya merekap absensi siswa di kelas Anda (<strong>{classGroupLabel}</strong>). Rekapitulasi keseluruhan (Semua Kelas) dikelola khusus oleh Administrator Sekolah.
+                  </span>
+                </div>
+              )}
             </div>
+
 
             {/* Footer Buttons */}
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
