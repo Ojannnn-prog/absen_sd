@@ -49,3 +49,26 @@ export async function getExportData(classGroup?: string) {
     return [];
   }
 }
+
+export async function getStudentsForMonthlyReport(classGroup?: string) {
+  try {
+    const whereClause: any = {};
+    if (classGroup && classGroup !== "ALL") {
+      whereClause.classGroup = classGroup;
+    }
+
+    const students = await prisma.student.findMany({
+      where: whereClause,
+      include: {
+        attendances: true
+      },
+      orderBy: { name: "asc" }
+    });
+
+    return JSON.parse(JSON.stringify(students));
+  } catch (error) {
+    console.error("getStudentsForMonthlyReport error:", error);
+    return [];
+  }
+}
+

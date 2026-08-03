@@ -12,12 +12,14 @@ import { createStudentByTeacher, updateStudentByTeacher, deleteStudentByTeacher,
 import TeacherImportStudentsModal from "@/components/TeacherImportStudentsModal";
 import CityInput from "@/components/CityInput";
 import TeacherProgressTable from "@/components/TeacherProgressTable";
+import MonthlyReportModal from "@/components/MonthlyReportModal";
 
 interface Props {
   teacher: any;
   initialStudents: any[];
   totalResources?: number;
 }
+
 
 export default function TeacherStudentClient({ teacher, initialStudents, totalResources = 0 }: Props) {
   const [students, setStudents] = useState(initialStudents);
@@ -380,6 +382,13 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
             <FileText className="w-4 h-4" />
             <span>PDF (6{classGroup})</span>
           </button>
+          <MonthlyReportModal
+            students={filteredStudents}
+            role="teacher"
+            classGroupLabel={`Kelas 6${classGroup}`}
+            buttonLabel={`Report Bulanan (6${classGroup})`}
+            buttonClassName="btn bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-md shadow-indigo-600/20 cursor-pointer"
+          />
           <button
             onClick={() => {
               setNewCredentials(null);

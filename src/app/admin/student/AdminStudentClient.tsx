@@ -8,6 +8,8 @@ import QRCode from "qrcode";
 import { getAvatarUrl } from "@/lib/avatar";
 import AdminReportButton from "@/components/AdminReportButton";
 import ConfirmModal from "@/components/ConfirmModal";
+import MonthlyReportModal from "@/components/MonthlyReportModal";
+
 
 export default function AdminStudentClient({ initialStudents }: { initialStudents: any[] }) {
   const [students, setStudents] = useState(initialStudents);
@@ -215,7 +217,14 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))] outline-none font-medium text-gray-700"
               />
             </div>
-            <AdminReportButton students={filteredStudents} />
+            <div className="flex items-center gap-2">
+              <AdminReportButton students={filteredStudents} />
+              <MonthlyReportModal
+                students={filteredStudents}
+                role="admin"
+                classGroupLabel={classFilter === "ALL" ? "Semua Kelas" : `Kelas 6${classFilter}`}
+              />
+            </div>
           </div>
         </div>
 

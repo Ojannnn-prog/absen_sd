@@ -5,8 +5,9 @@ import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getExportData } from "@/app/admin/exportActions";
+import { getExportData, getStudentsForMonthlyReport } from "@/app/admin/exportActions";
 import toast from "react-hot-toast";
+import MonthlyReportModal from "@/components/MonthlyReportModal";
 
 export default function ExportButtons() {
   const [loading, setLoading] = useState<"excel" | "pdf" | null>(null);
@@ -48,29 +49,32 @@ export default function ExportButtons() {
 
       const doc = new jsPDF("landscape");
       
-      // Header
       doc.setFontSize(18);
-      doc.text(`Laporan Kehadiran Siswa SDN 231 Sukaasih (${selectedClass === "ALL" ? "Semua Kelas" : `Kelas 6${selectedClass}`})`, 14, 22);
+      doc.text(`Laporan Kehadiran Siswa SDN 231 Sukaasih (${selectedClass === "ALL" ? "Semua Kelas" : "Kelas 6" + selectedClass})`, 14, 22);
       
       doc.setFontSize(11);
-      doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 30);
+      doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 30);
 
-      // Extract columns and rows
-      const columns = Object.keys(data[0]);
-      const rows = data.map(item => Object.values(item));
+      const tableData = data.map((item: any) => [
+        item.No,
+        item["Nama Siswa"],
+        item["Nomor Induk"],
+        item["L/P"],
+        item["Kelas"],
+        item["Hadir"],
+        item["Izin"],
+        item["Absen/Alpha"]
+      ]);
 
-      // Generate Table
       autoTable(doc, {
-        head: [columns],
-        body: rows,
-        startY: 36,
+        startY: 38,
+        head: [['No', 'Nama Siswa', 'NIS', 'L/P', 'Kelas', 'Hadir', 'Izin', 'Alpha']],
+        body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [79, 70, 229] }, // Primary color (Indigo 600)
-        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [79, 70, 229] }
       });
 
-      // Save PDF
-      doc.save(`Laporan_Kehadiran_SDN231_Kelas_${selectedClass}_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.pdf`);
+      doc.save(`Laporan_Kehadiran_Kelas_${selectedClass}.pdf`);
       toast.success("Laporan PDF berhasil diunduh!");
     } catch (err) {
       console.error(err);
@@ -110,6 +114,14 @@ export default function ExportButtons() {
         {loading === "pdf" ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
         <span className="text-sm">PDF</span>
       </button>
+
+      <MonthlyReportModal
+        role="admin"
+        classGroupLabel={selectedClass === "ALL" ? "Semua Kelas" : `Kelas 6${selectedClass}`}
+        buttonClassName="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-4 py-2.5 rounded-xl transition-colors border border-indigo-200 cursor-pointer"
+        buttonLabel="Report Bulanan (PDF)"
+        onFetchStudents={() => getStudentsForMonthlyReport(selectedClass)}
+      />
     </div>
   );
 }

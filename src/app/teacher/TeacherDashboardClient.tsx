@@ -6,6 +6,7 @@ import Link from "next/link";
 import TeacherAvatarMaker from "@/components/TeacherAvatarMaker";
 import TeacherProfileEditor from "@/components/TeacherProfileEditor";
 import TeacherProgressTable from "@/components/TeacherProgressTable";
+import MonthlyReportModal from "@/components/MonthlyReportModal";
 import { getAvatarUrl } from "@/lib/avatar";
 
 interface Props {
@@ -38,94 +39,102 @@ export default function TeacherDashboardClient({ teacher, students, stats, annou
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
             <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5 w-full">
               <div className="w-20 h-20 rounded-2xl bg-white/10 p-1 border-2 border-white/20 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
-                <img src={avatarUrl} alt={teacher.name} className="w-full h-full object-cover rounded-xl" />
+                <img 
+                  src={avatarUrl} 
+                  alt={teacher.name}
+                  className="w-full h-full object-cover rounded-xl"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
               </div>
 
-              <div className="w-full">
-                <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                  <span className="px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-300 font-extrabold text-xs flex items-center gap-1">
-                    <Crown className="w-3.5 h-3.5" />
+              <div>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{teacher.name || "Guru Pengampu"}</h1>
+                  <span className="px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold flex items-center gap-1">
+                    <Crown className="w-3.5 h-3.5 text-amber-400" />
                     Wali Kelas 6{classGroup}
                   </span>
-                  {teacher.activeTitle && (
-                    <span className="px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 font-bold text-xs">
-                      {teacher.activeTitle}
-                    </span>
-                  )}
                 </div>
-                <h1 className="text-2xl md:text-3xl font-black mt-2 tracking-tight">
-                  Halo, {teacher.name || "Guru"}
-                </h1>
-                <p className="text-indigo-200 text-sm mt-1">
-                  Selamat datang di Dasbor Guru Kelas 6{classGroup}. Kelola absensi dan perkembangan belajar siswa dengan mudah.
+                
+                <p className="text-indigo-200 text-sm mt-1 font-medium">
+                  {teacher.username ? `@${teacher.username}` : "Tenaga Pendidik SDN 231 Sukaasih"} • NIP: {teacher.nip || "-"}
                 </p>
+
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-3 text-xs text-indigo-100">
+                  <span className="flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-lg">
+                    <Users className="w-3.5 h-3.5 text-indigo-300" />
+                    {stats.totalStudents} Siswa Terdaftar
+                  </span>
+                  <span className="flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-lg">
+                    <ShieldCheck className="w-3.5 h-3.5 text-green-300" />
+                    Akses Khusus Kelas 6{classGroup}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <Link 
+            <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center">
+              <Link
                 href="/teacher/scanner"
-                className="flex-1 md:flex-initial btn bg-amber-400 hover:bg-amber-300 text-gray-950 font-extrabold px-6 py-3 rounded-xl shadow-lg shadow-amber-400/20 flex items-center justify-center gap-2 transition-all"
+                className="btn bg-amber-400 hover:bg-amber-500 text-gray-900 px-5 py-3 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 transition-all cursor-pointer"
               >
                 <QrCode className="w-5 h-5" />
-                <span>Buka Scanner Kelas 6{classGroup}</span>
-              </Link>
-              <Link 
-                href="/teacher/student"
-                className="flex-1 md:flex-initial btn bg-white/10 hover:bg-white/20 text-white font-bold px-5 py-3 rounded-xl border border-white/20 flex items-center justify-center gap-2 transition-all"
-              >
-                <Users className="w-5 h-5" />
-                <span>Kelola Siswa (6{classGroup})</span>
+                <span>Buka Scanner Absensi</span>
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 gap-6">
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-3">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`pb-4 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
               activeTab === "overview"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
             }`}
           >
-            <ShieldCheck className="w-4 h-4" />
-            Ikhtisar Kelas 6{classGroup}
+            <Users className="w-4 h-4" />
+            <span>Ringkasan Kelas</span>
           </button>
+
           <button
             onClick={() => setActiveTab("progress")}
-            className={`pb-4 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
               activeTab === "progress"
-                ? "border-green-600 text-green-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
             }`}
           >
-            <Trophy className="w-4 h-4 text-green-600" />
-            Progres Belajar Siswa
+            <Trophy className="w-4 h-4" />
+            <span>Progres Belajar</span>
           </button>
+
           <button
             onClick={() => setActiveTab("avatar")}
-            className={`pb-4 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
               activeTab === "avatar"
-                ? "border-amber-500 text-amber-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
             }`}
           >
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            Avatar Maker (Guru)
+            <Sparkles className="w-4 h-4" />
+            <span>Avatar Maker</span>
           </button>
+
           <button
             onClick={() => setActiveTab("profile")}
-            className={`pb-4 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
               activeTab === "profile"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
             }`}
           >
             <User className="w-4 h-4" />
-            Pengaturan Akun & Profil
+            <span>Profil Guru</span>
           </button>
         </div>
 
@@ -185,12 +194,21 @@ export default function TeacherDashboardClient({ teacher, students, stats, annou
                   <Users className="w-5 h-5 text-indigo-600" />
                   Daftar Siswa Kelas 6{classGroup}
                 </h3>
-                <Link 
-                  href="/teacher/student"
-                  className="text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
-                >
-                  Kelola Semua <ArrowRight className="w-4 h-4" />
-                </Link>
+                <div className="flex items-center gap-3">
+                  <MonthlyReportModal
+                    students={students}
+                    role="teacher"
+                    classGroupLabel={`Kelas 6${classGroup}`}
+                    buttonLabel="Report Bulanan (PDF)"
+                    buttonClassName="flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-indigo-200 cursor-pointer"
+                  />
+                  <Link 
+                    href="/teacher/student"
+                    className="text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                  >
+                    Kelola Semua <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
