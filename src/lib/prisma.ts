@@ -10,11 +10,13 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient };
 let prisma: PrismaClient;
 
 if (process.env.NODE_ENV === 'production') {
-  const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+  const adapter = new PrismaNeon(pool);
   prisma = new PrismaClient({ adapter });
 } else {
   if (!globalForPrisma.prisma) {
-    const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+    const adapter = new PrismaNeon(pool);
     globalForPrisma.prisma = new PrismaClient({ adapter });
   }
   prisma = globalForPrisma.prisma;

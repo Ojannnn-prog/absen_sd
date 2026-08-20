@@ -47,6 +47,9 @@ export default function Navbar({ role }: { role: string | null }) {
           <a href="/admin/resources" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
             <BookOpen className="w-5 h-5" /> Sumber Belajar
           </a>
+          <a href="/admin/scanner" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
+            <QrCode className="w-5 h-5 text-indigo-600" /> Scanner
+          </a>
         </>
       );
     }
