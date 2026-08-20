@@ -142,7 +142,7 @@ export default function StudentKTACard({ student }: Props) {
     return d.toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
-  const KtaContent = () => (
+  const ktaContent = (
     <>
       <div className="absolute inset-0 bg-[#f8fafc]"></div>
 
@@ -223,7 +223,7 @@ export default function StudentKTACard({ student }: Props) {
       <div className="relative w-[300px] h-[189px] sm:w-[400px] sm:h-[252px] shadow-2xl rounded-2xl overflow-hidden shrink-0 group transition-transform hover:scale-[1.02] max-w-full">
         <div className="absolute top-0 left-0 origin-top-left scale-[0.5] sm:scale-[0.6666] pointer-events-none" aria-hidden="true">
           <div className="w-[600px] h-[378px] bg-gray-50 relative overflow-hidden">
-            <KtaContent />
+            {ktaContent}
           </div>
         </div>
       </div>
