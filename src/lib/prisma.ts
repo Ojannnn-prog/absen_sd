@@ -1,25 +1,22 @@
 import { PrismaClient } from '../generated/prisma/client';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import ws from 'ws';
-
-neonConfig.webSocketConstructor = ws;
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 let prisma: PrismaClient;
 
-// Provide a dummy fallback so Vercel build phase doesn't crash when DATABASE_URL is unavailable
-const connectionString = process.env.DATABASE_URL || "postgres://dummy:dummy@localhost/dummy";
+// Fallback empty string if undefined. Standard pg driver will throw a clear connection error.
+const connectionString = process.env.DATABASE_URL || "";
 
 if (process.env.NODE_ENV === 'production') {
   const pool = new Pool({ connectionString });
-  const adapter = new PrismaNeon(pool);
+  const adapter = new PrismaPg(pool);
   prisma = new PrismaClient({ adapter });
 } else {
   if (!globalForPrisma.prisma) {
     const pool = new Pool({ connectionString });
-    const adapter = new PrismaNeon(pool);
+    const adapter = new PrismaPg(pool);
     globalForPrisma.prisma = new PrismaClient({ adapter });
   }
   prisma = globalForPrisma.prisma;
