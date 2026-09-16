@@ -2,9 +2,14 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireRole } from "@/lib/security";
 
 export async function recordAttendance(studentCode: string) {
   try {
+    await requireRole("admin");
+    if (!/^2312026\d{3}$/.test(studentCode)) {
+      return { success: false, message: "Kode siswa tidak valid." };
+    }
     // Cari siswa berdasarkan studentCode
     const student = await prisma.student.findUnique({
       where: { studentCode },

@@ -13,6 +13,18 @@ export async function getTeacherDashboardData() {
 
     const teacher = await prisma.teacher.findUnique({
       where: { id: session.id },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        nip: true,
+        classGroup: true,
+        profileImage: true,
+        nickname: true,
+        activeTheme: true,
+        activeTitle: true,
+        avatarConfig: true,
+      },
     });
 
     if (!teacher) return null;
@@ -24,14 +36,13 @@ export async function getTeacherDashboardData() {
     // Cari siswa yang hanya berada di kelas Guru ini
     const students = await prisma.student.findMany({
       where: { classGroup },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        gender: true,
+        studentCode: true,
         attendances: {
           orderBy: { timestamp: "desc" }
-        },
-        studentProgress: true,
-        quizAttempts: {
-          include: { resource: true },
-          orderBy: { createdAt: "desc" }
         },
       },
       orderBy: { name: "asc" }

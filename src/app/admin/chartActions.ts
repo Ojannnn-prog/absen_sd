@@ -3,9 +3,11 @@
 import prisma from "@/lib/prisma";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format } from "date-fns";
 import { id } from "date-fns/locale";
+import { requireRole } from "@/lib/security";
 
 export async function getMonthlyAttendanceData() {
   try {
+    await requireRole("admin");
     const today = new Date();
     const firstDay = startOfMonth(today);
     const lastDay = endOfMonth(today);

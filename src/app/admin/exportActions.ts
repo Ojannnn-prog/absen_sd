@@ -1,9 +1,11 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { requireRole } from "@/lib/security";
 
 export async function getExportData(classGroup?: string) {
   try {
+    await requireRole("admin");
     const whereClause: any = {};
     if (classGroup && classGroup !== "ALL") {
       whereClause.classGroup = classGroup;
@@ -52,6 +54,7 @@ export async function getExportData(classGroup?: string) {
 
 export async function getStudentsForMonthlyReport(classGroup?: string) {
   try {
+    await requireRole("admin");
     const whereClause: any = {};
     if (classGroup && classGroup !== "ALL") {
       whereClause.classGroup = classGroup;
@@ -71,4 +74,3 @@ export async function getStudentsForMonthlyReport(classGroup?: string) {
     return [];
   }
 }
-

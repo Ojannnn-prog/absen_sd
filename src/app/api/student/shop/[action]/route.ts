@@ -1,18 +1,44 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { isSameOrigin } from "@/lib/security";
+
+const AVAILABLE_TITLES = new Set([
+  "Sang Jagoan",
+  "Sang Ahli Coding",
+  "Sang Ahli Prompt",
+  "Kompetitor Handal",
+  "Si Paling Rajin",
+  "Raja Kuis",
+  "Bintang Kelas",
+  "Pahlawan Belajar",
+  "Penguasa Materi",
+  "Master Logika",
+]);
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ action: string }> }
 ) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: "Permintaan tidak diizinkan" }, { status: 403 });
+    }
+
+    const contentLength = Number(request.headers.get("content-length") ?? 0);
+    if (contentLength > 128 * 1024) {
+      return NextResponse.json({ error: "Permintaan terlalu besar" }, { status: 413 });
+    }
+
     const session = await getSession();
     if (!session || session.role !== "student") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { action } = await params;
+    if (!["title", "equip", "avatar-pass", "save-avatar"].includes(action)) {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
 
     // Fetch latest student data to get points
     const student = await prisma.student.findUnique({
@@ -39,7 +65,9 @@ export async function POST(
       const body = await request.json();
       const { title } = body;
 
-      if (!title) return NextResponse.json({ error: "Title required" }, { status: 400 });
+      if (typeof title !== "string" || !AVAILABLE_TITLES.has(title)) {
+        return NextResponse.json({ error: "Titel tidak valid" }, { status: 400 });
+      }
       if (student.unlockedTitles.includes(title)) {
         return NextResponse.json({ error: "Titel sudah dimiliki" }, { status: 400 });
       }
@@ -62,7 +90,7 @@ export async function POST(
       const body = await request.json();
       const { title } = body;
 
-      if (!title || !student.unlockedTitles.includes(title)) {
+      if (typeof title !== "string" || !AVAILABLE_TITLES.has(title) || !student.unlockedTitles.includes(title)) {
         return NextResponse.json({ error: "Titel tidak dimiliki" }, { status: 400 });
       }
 
@@ -101,10 +129,27 @@ export async function POST(
          return NextResponse.json({ error: "Avatar Pass belum terbuka" }, { status: 400 });
       }
 
+      let avatarUrlObject: URL;
+      if (typeof avatarUrl !== "string" || avatarUrl.length > 1000) {
+        return NextResponse.json({ error: "Avatar tidak valid" }, { status: 400 });
+      }
+      try {
+        avatarUrlObject = new URL(avatarUrl);
+      } catch {
+        return NextResponse.json({ error: "Avatar tidak valid" }, { status: 400 });
+      }
+      if (
+        avatarUrlObject.protocol !== "https:" ||
+        avatarUrlObject.hostname !== "api.dicebear.com" ||
+        !avatarUrlObject.pathname.startsWith("/7.x/avataaars/svg")
+      ) {
+        return NextResponse.json({ error: "Sumber avatar tidak diizinkan" }, { status: 400 });
+      }
+
       await prisma.student.update({
         where: { id: student.id },
         data: {
-          avatarConfig: avatarUrl 
+          avatarConfig: avatarUrlObject.toString()
         }
       });
       return NextResponse.json({ success: true });

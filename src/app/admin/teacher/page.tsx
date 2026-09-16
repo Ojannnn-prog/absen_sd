@@ -15,6 +15,18 @@ export default async function AdminTeacherPage() {
 
   const teachers = await prisma.teacher.findMany({
     orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      nip: true,
+      classGroup: true,
+      profileImage: true,
+      avatarConfig: true,
+      nickname: true,
+      activeTheme: true,
+      activeTitle: true,
+    },
   });
 
   return (

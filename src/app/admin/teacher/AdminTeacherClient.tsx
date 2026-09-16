@@ -249,7 +249,7 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 max-w-[150px]">
                           <span className="font-mono flex-1 text-sm text-gray-700 tracking-wider truncate">
-                            {isPassVisible ? t.password : "••••••••"}
+                            {isPassVisible ? "Password tersimpan" : "••••••••"}
                           </span>
                           <button
                             onClick={() => togglePassword(t.id)}

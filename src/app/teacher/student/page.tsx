@@ -10,7 +10,8 @@ export default async function TeacherStudentPage() {
   }
 
   const teacher = await prisma.teacher.findUnique({
-    where: { id: session.id }
+    where: { id: session.id },
+    select: { id: true, name: true, classGroup: true },
   });
 
   if (!teacher) {
@@ -25,14 +26,23 @@ export default async function TeacherStudentPage() {
   const students = await prisma.student.findMany({
     where: { classGroup },
     orderBy: { name: 'asc' },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      gender: true,
+      birthPlace: true,
+      birthDate: true,
+      studentCode: true,
+      classGroup: true,
+      profileImage: true,
+      avatarConfig: true,
       attendances: true,
       studentProgress: true,
       quizAttempts: {
         include: { resource: true },
         orderBy: { createdAt: 'desc' }
       },
-    }
+    },
   });
 
   return (

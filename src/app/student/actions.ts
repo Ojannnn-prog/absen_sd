@@ -4,6 +4,13 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getSession } from "@/lib/auth";
 
+const THEME_PRICES: Record<string, number> = {
+  default: 0,
+  pink: 10,
+  green: 10,
+  gold: 30,
+};
+
 export async function updateStudentPassword(newPassword: string) {
   try {
     const session = await getSession();
@@ -53,10 +60,15 @@ export async function updateProfile(nickname: string | null, profileImage: strin
   }
 }
 
-export async function buyTheme(themeId: string, price: number) {
+export async function buyTheme(themeId: string, _clientPrice: number) {
   try {
     const session = await getSession();
     if (!session || session.role !== "student") return { success: false, message: "Unauthorized" };
+
+    const price = THEME_PRICES[themeId];
+    if (price === undefined) {
+      return { success: false, message: "Tema tidak valid" };
+    }
 
     const student = await prisma.student.findUnique({
       where: { id: session.id },

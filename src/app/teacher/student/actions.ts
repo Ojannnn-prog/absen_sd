@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { getSession, hashPassword } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { randomBytes } from "node:crypto";
 
 export async function createStudentByTeacher(formData: FormData) {
   try {
@@ -53,7 +54,7 @@ export async function createStudentByTeacher(formData: FormData) {
     const sequence = String(nextSequence).padStart(3, "0");
     const studentCode = `2312026${sequence}`;
     const username = studentCode;
-    const randomPass = Math.random().toString(36).slice(-8);
+    const randomPass = randomBytes(6).toString("base64url").slice(0, 8);
     const hashedPassword = await hashPassword(randomPass);
 
     await prisma.student.create({

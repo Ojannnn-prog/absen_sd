@@ -10,6 +10,9 @@ export async function recordAttendanceByTeacher(studentCode: string) {
     if (!session || session.role !== "teacher") {
       return { success: false, message: "Unauthorized: Anda bukan Guru." };
     }
+    if (!/^2312026\d{3}$/.test(studentCode)) {
+      return { success: false, message: "Kode siswa tidak valid." };
+    }
 
     const teacher = await prisma.teacher.findUnique({
       where: { id: session.id }

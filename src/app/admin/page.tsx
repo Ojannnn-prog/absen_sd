@@ -21,7 +21,18 @@ export default async function AdminDashboard() {
   });
 
   const rawStudents = await prisma.student.findMany({
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      gender: true,
+      birthPlace: true,
+      birthDate: true,
+      studentCode: true,
+      classGroup: true,
+      profileImage: true,
+      avatarConfig: true,
+    },
   });
   const students = JSON.parse(JSON.stringify(rawStudents));
 

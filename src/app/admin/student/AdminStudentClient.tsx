@@ -77,7 +77,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
   const openEditModal = (student: any) => {
     setEditingStudent(student);
     setName(student.name);
-    setPassword(student.password);
+    setPassword("");
     setGender(student.gender || "");
     setBirthPlace(student.birthPlace || "");
     setBirthDate(student.birthDate ? new Date(student.birthDate).toISOString().split('T')[0] : "");
@@ -102,7 +102,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
     try {
       const res = await updateStudent(editingStudent.id, {
         name,
-        password: password !== editingStudent.password ? password : undefined,
+        password: password.trim() ? password : undefined,
         gender,
         birthPlace,
         birthDate: birthDate ? new Date(birthDate) : null,
@@ -362,7 +362,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 max-w-[150px]">
                           <span className="font-mono flex-1 text-sm text-gray-700 tracking-wider truncate">
-                            {isPassVisible ? student.password : "••••••••"}
+                            {isPassVisible ? "Password tersimpan" : "••••••••"}
                           </span>
                           <button 
                             onClick={() => togglePassword(student.id)}

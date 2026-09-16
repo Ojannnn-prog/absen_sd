@@ -10,7 +10,8 @@ export default async function TeacherScannerPage() {
   }
 
   const teacher = await prisma.teacher.findUnique({
-    where: { id: session.id }
+    where: { id: session.id },
+    select: { classGroup: true },
   });
 
   if (!teacher) {

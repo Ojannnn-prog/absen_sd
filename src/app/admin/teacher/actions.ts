@@ -3,8 +3,11 @@
 import prisma from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { requireRole } from "@/lib/security";
+import { randomBytes } from "node:crypto";
 
 export async function createTeacher(formData: FormData) {
+  await requireRole("admin");
   const name = formData.get("name") as string;
   const username = formData.get("username") as string;
   const nip = formData.get("nip") as string;
@@ -25,7 +28,7 @@ export async function createTeacher(formData: FormData) {
 
     const plainPassword = passwordInput && passwordInput.trim() !== "" 
       ? passwordInput.trim() 
-      : Math.random().toString(36).slice(-8);
+      : randomBytes(6).toString("base64url").slice(0, 8);
     const hashedPassword = await hashPassword(plainPassword);
 
     const teacher = await prisma.teacher.create({
@@ -36,6 +39,15 @@ export async function createTeacher(formData: FormData) {
         classGroup,
         password: hashedPassword,
         avatarUnlocked: true, // Default premium avatar untuk Guru
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        nip: true,
+        classGroup: true,
+        profileImage: true,
+        avatarConfig: true,
       },
     });
 
@@ -54,6 +66,7 @@ export async function createTeacher(formData: FormData) {
 }
 
 export async function updateTeacher(id: string, formData: FormData) {
+  await requireRole("admin");
   const name = formData.get("name") as string;
   const username = formData.get("username") as string;
   const nip = formData.get("nip") as string;
@@ -86,6 +99,7 @@ export async function updateTeacher(id: string, formData: FormData) {
 }
 
 export async function deleteTeacher(id: string) {
+  await requireRole("admin");
   try {
     await prisma.teacher.delete({
       where: { id },

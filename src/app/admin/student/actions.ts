@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getSession, hashPassword } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export async function updateStudent(id: string, data: {
@@ -28,7 +28,7 @@ export async function updateStudent(id: string, data: {
     }
 
     if (data.password) {
-      updateData.password = data.password;
+      updateData.password = await hashPassword(data.password);
     }
 
     await prisma.student.update({

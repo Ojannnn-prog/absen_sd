@@ -26,7 +26,24 @@ export default async function StudentDashboard() {
 
   const student = await prisma.student.findUnique({
     where: { id: session.id },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      gender: true,
+      birthPlace: true,
+      birthDate: true,
+      studentCode: true,
+      username: true,
+      classGroup: true,
+      profileImage: true,
+      nickname: true,
+      spentPoints: true,
+      activeTheme: true,
+      unlockedThemes: true,
+      activeTitle: true,
+      unlockedTitles: true,
+      avatarUnlocked: true,
+      avatarConfig: true,
       attendances: {
         orderBy: { timestamp: "desc" },
       },

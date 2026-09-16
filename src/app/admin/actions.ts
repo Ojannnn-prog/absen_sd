@@ -3,8 +3,11 @@
 import prisma from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { requireRole } from "@/lib/security";
+import { randomBytes } from "node:crypto";
 
 export async function createStudent(formData: FormData) {
+  await requireRole("admin");
   const name = formData.get("name") as string;
   const gender = formData.get("gender") as string;
   const birthPlace = formData.get("birthPlace") as string;
@@ -45,7 +48,7 @@ export async function createStudent(formData: FormData) {
     // Generate username and password
     const username = studentCode; // Bisa disesuaikan
     // Password acak 8 karakter
-    const randomPass = Math.random().toString(36).slice(-8);
+    const randomPass = randomBytes(6).toString("base64url").slice(0, 8);
     const hashedPassword = await hashPassword(randomPass);
 
     await prisma.student.create({
@@ -76,6 +79,7 @@ export async function createStudent(formData: FormData) {
 }
 
 export async function importStudentsBulk(studentsData: any[], targetClassGroup?: string) {
+  await requireRole("admin");
   try {
     if (!studentsData || studentsData.length === 0) {
       return { success: false, message: "Data siswa kosong" };
@@ -142,6 +146,7 @@ export async function importStudentsBulk(studentsData: any[], targetClassGroup?:
 }
 
 export async function updateStudent(id: string, formData: FormData) {
+  await requireRole("admin");
   const name = formData.get("name") as string;
   const gender = formData.get("gender") as string;
   const birthPlace = formData.get("birthPlace") as string;
@@ -182,6 +187,7 @@ export async function updateStudent(id: string, formData: FormData) {
 }
 
 export async function deleteStudent(id: string) {
+  await requireRole("admin");
   try {
     // Delete all attendance records associated with the student first
     await prisma.attendance.deleteMany({
@@ -201,6 +207,7 @@ export async function deleteStudent(id: string) {
 }
 
 export async function updateAdmin(id: string, formData: FormData) {
+  await requireRole("admin");
   const name = formData.get("name") as string;
   const newPassword = formData.get("newPassword") as string;
 
@@ -225,6 +232,7 @@ export async function updateAdmin(id: string, formData: FormData) {
 }
 
 export async function createAnnouncement(formData: FormData) {
+  await requireRole("admin");
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
 
@@ -245,6 +253,7 @@ export async function createAnnouncement(formData: FormData) {
 }
 
 export async function deleteAnnouncement(id: string) {
+  await requireRole("admin");
   await prisma.announcement.delete({
     where: { id }
   });

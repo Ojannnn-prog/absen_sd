@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, User, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
@@ -12,9 +12,21 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+
+    const timer = window.setTimeout(() => {
+      setCooldownSeconds((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [cooldownSeconds]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldownSeconds > 0) return;
     setLoading(true);
     const toastId = toast.loading("Memeriksa kredensial...");
 
@@ -33,7 +45,15 @@ export default function AdminLogin() {
         // Use full reload for absolute state clear
         window.location.href = data.role === "admin" ? "/admin" : data.role === "teacher" ? "/teacher" : "/student";
       } else {
-        toast.error(data.error || "Login gagal", { id: toastId });
+        if (typeof data.cooldownSeconds === "number" && data.cooldownSeconds > 0) {
+          setCooldownSeconds(data.cooldownSeconds);
+        }
+        const attemptHint =
+          data.cooldownSeconds === 0 &&
+          typeof data.initialAttemptsRemaining === "number"
+            ? ` Sisa kesempatan sebelum cooldown: ${data.initialAttemptsRemaining}.`
+            : "";
+        toast.error(`${data.error || "Login gagal"}${attemptHint}`, { id: toastId });
       }
     } catch (err) {
       toast.error("Terjadi kesalahan sistem", { id: toastId });
@@ -69,6 +89,7 @@ export default function AdminLogin() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                disabled={loading || cooldownSeconds > 0}
                 required
                 placeholder="Masukkan username"
                 className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))]/20 focus:border-[var(--theme-primary,var(--color-primary))] transition-all sm:text-sm"
@@ -83,6 +104,7 @@ export default function AdminLogin() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading || cooldownSeconds > 0}
                 required
                 placeholder="Masukkan password"
                 className="block w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))]/20 focus:border-[var(--theme-primary,var(--color-primary))] transition-all sm:text-sm"
@@ -96,12 +118,21 @@ export default function AdminLogin() {
               </button>
             </div>
           </div>
+          {cooldownSeconds > 0 && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-800"
+            >
+              Percobaan login ditahan. Silakan tunggu <strong>{cooldownSeconds} detik</strong> sebelum mencoba lagi.
+            </div>
+          )}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || cooldownSeconds > 0}
             className="bg-[var(--theme-primary,var(--color-primary))] hover:opacity-90 text-white font-bold w-full flex justify-center py-3 mt-4 rounded-xl shadow-md transition-all disabled:opacity-70 disabled:cursor-wait"
           >
-            {loading ? "Memproses..." : "Masuk"}
+            {cooldownSeconds > 0 ? `Tunggu ${cooldownSeconds} detik` : loading ? "Memproses..." : "Masuk"}
           </button>
         </form>
       </div>

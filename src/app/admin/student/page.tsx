@@ -11,11 +11,30 @@ export default async function AdminStudentPage() {
 
   const students = await prisma.student.findMany({
     orderBy: { name: 'asc' },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      gender: true,
+      birthPlace: true,
+      birthDate: true,
+      studentCode: true,
+      username: true,
+      classGroup: true,
+      profileImage: true,
+      nickname: true,
+      spentPoints: true,
+      activeTheme: true,
+      unlockedThemes: true,
+      activeTitle: true,
+      unlockedTitles: true,
+      avatarUnlocked: true,
+      avatarConfig: true,
+      createdAt: true,
+      lastActive: true,
       attendances: true,
       studentProgress: true,
       quizAttempts: true,
-    }
+    },
   });
 
   return (

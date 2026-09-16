@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { isValidClassGroup } from "@/lib/security";
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,10 @@ export async function GET(request: Request) {
     const session = await getSession();
     const { searchParams } = new URL(request.url);
     const queryClassGroup = searchParams.get("classGroup");
+
+    if (queryClassGroup && queryClassGroup !== "ALL" && !isValidClassGroup(queryClassGroup)) {
+      return NextResponse.json({ error: "Kelas tidak valid" }, { status: 400 });
+    }
 
     const whereClause: any = {};
     let classGroupLabel = "ALL";
