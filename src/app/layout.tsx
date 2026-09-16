@@ -16,8 +16,43 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Sistem Absensi SD",
-  description: "Sistem Absensi QR Code Modern dan Interaktif",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  title: {
+    default: "Sistem Absensi SDN 231 Sukaasih",
+    template: "%s | SDN 231 Sukaasih",
+  },
+  description: "Sistem absensi QR Code, portal belajar, dan gamifikasi SDN 231 Sukaasih.",
+  applicationName: "Sistem Absensi SDN 231 Sukaasih",
+  authors: [{ name: "SDN 231 Sukaasih" }],
+  creator: "SDN 231 Sukaasih",
+  publisher: "SDN 231 Sukaasih",
+  keywords: ["absensi QR Code", "SDN 231 Sukaasih", "portal belajar", "e-learning SD"],
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "SDN 231 Sukaasih",
+    title: "Sistem Absensi SDN 231 Sukaasih",
+    description: "Sistem absensi QR Code, portal belajar, dan gamifikasi SDN 231 Sukaasih.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1890,
+        height: 704,
+        alt: "Sistem Absensi SDN 231 Sukaasih",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sistem Absensi SDN 231 Sukaasih",
+    description: "Sistem absensi QR Code, portal belajar, dan gamifikasi SDN 231 Sukaasih.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default async function RootLayout({
@@ -29,7 +64,7 @@ export default async function RootLayout({
 
   return (
     <html lang="id" className={`${plusJakartaSans.variable}`}>
-      <body className="bg-bg-light min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-primary/20 selection:text-primary">
+      <body className="bg-bg-light min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
         <ToastProvider />
         <CookieConsent />
         <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/70 border-b border-gray-100/50 supports-[backdrop-filter]:bg-white/40 px-6 py-4 flex justify-between items-center transition-all duration-300 relative">

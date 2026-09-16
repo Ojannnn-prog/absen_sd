@@ -47,7 +47,7 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/3 min-w-[300px]">
+        <div className="w-full lg:w-1/3 min-w-0 sm:min-w-[300px]">
           <CalendarWidget />
         </div>
       </section>

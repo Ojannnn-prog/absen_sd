@@ -407,10 +407,10 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
 
       {/* Tab Switcher & Unrecorded Notice */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-gray-100/70 p-2 rounded-2xl border border-gray-200/60">
-        <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl shadow-sm">
+        <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl shadow-sm overflow-x-auto max-w-full">
           <button
             onClick={() => setActiveTab("all")}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 ${
               activeTab === "all"
                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
                 : "text-gray-600 hover:bg-gray-100"
@@ -420,7 +420,7 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
           </button>
           <button
             onClick={() => setActiveTab("unrecorded")}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === "unrecorded"
                 ? "bg-red-600 text-white shadow-md shadow-red-600/20"
                 : "text-gray-600 hover:bg-red-50 hover:text-red-600"
@@ -437,7 +437,7 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
           </button>
           <button
             onClick={() => setActiveTab("progress")}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               activeTab === "progress"
                 ? "bg-green-600 text-white shadow-md shadow-green-600/20"
                 : "text-gray-600 hover:bg-green-50 hover:text-green-600"

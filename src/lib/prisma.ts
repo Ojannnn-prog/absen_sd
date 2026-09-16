@@ -1,25 +1,20 @@
 import { PrismaClient } from '../generated/prisma/client';
-import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
-let prisma: PrismaClient;
+const connectionString = process.env.DATABASE_URL || "postgresql://build:build@localhost/build";
 
-// Fallback empty string if undefined. Standard pg driver will throw a clear connection error.
-const connectionString = process.env.DATABASE_URL || "";
+const adapter = new PrismaPg({
+  connectionString,
+});
 
-if (process.env.NODE_ENV === 'production') {
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaPg(pool);
-  prisma = new PrismaClient({ adapter });
-} else {
-  if (!globalForPrisma.prisma) {
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaPg(pool);
-    globalForPrisma.prisma = new PrismaClient({ adapter });
-  }
-  prisma = globalForPrisma.prisma;
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
 }
 
 export default prisma;
