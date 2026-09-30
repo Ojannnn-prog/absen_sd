@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { getSession } from "@/lib/auth";
 import ToastProvider from "@/components/ToastProvider";
 import CookieConsent from "@/components/CookieConsent";
+import { Analytics } from "@vercel/analytics/next";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -86,6 +87,7 @@ export default async function RootLayout({
         <footer className="w-full py-6 text-center text-sm text-text-body mt-auto">
           &copy; {new Date().getFullYear()} SDN 231 Sukaasih. All rights reserved.
         </footer>
+        <Analytics />
       </body>
     </html>
   );

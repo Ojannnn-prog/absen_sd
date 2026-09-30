@@ -17,6 +17,7 @@
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.0",
     "@types/ws": "^8.18.1",
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.4.0",
     "html2canvas": "^1.4.1",
