@@ -44,6 +44,11 @@ export async function getTeacherDashboardData() {
         attendances: {
           orderBy: { timestamp: "desc" }
         },
+        studentProgress: true,
+        quizAttempts: {
+          include: { resource: true },
+          orderBy: { createdAt: "desc" }
+        },
       },
       orderBy: { name: "asc" }
     });

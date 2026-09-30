@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle, GraduationCap, QrCode } from "lucide-react";
+import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle, GraduationCap, QrCode, Library } from "lucide-react";
 import toast from "react-hot-toast";
 import ActivePing from "./ActivePing";
 
@@ -47,6 +47,9 @@ export default function Navbar({ role }: { role: string | null }) {
           <a href="/admin/resources" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
             <BookOpen className="w-5 h-5" /> Sumber Belajar
           </a>
+          <a href="/admin/references" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
+            <Library className="w-5 h-5 text-indigo-600" /> Modul Guru
+          </a>
           <a href="/admin/scanner" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
             <QrCode className="w-5 h-5 text-indigo-600" /> Scanner
           </a>
@@ -66,6 +69,9 @@ export default function Navbar({ role }: { role: string | null }) {
           </a>
           <a href="/teacher/scanner" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
             <QrCode className="w-5 h-5 text-indigo-600" /> Scanner Kelas
+          </a>
+          <a href="/teacher/references" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl hover:bg-gray-100 text-gray-700 font-medium transition-colors">
+            <Library className="w-5 h-5 text-indigo-600" /> Modul Referensi
           </a>
         </>
       );
