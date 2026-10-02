@@ -28,9 +28,36 @@ export default function QRScanner({
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const cooldownRef = useRef(false);
+  const transitionRef = useRef(false);
+  const mountedRef = useRef(true);
+  const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stopAndClearScanner = async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+
+    try {
+      if (scanner.isScanning) {
+        await scanner.stop();
+      }
+    } catch (error) {
+      console.warn("Failed to stop QR scanner:", error);
+    }
+
+    try {
+      scanner.clear();
+    } catch (error) {
+      console.warn("Failed to clear QR scanner:", error);
+    }
+
+    if (scannerRef.current === scanner) {
+      scannerRef.current = null;
+    }
+  };
 
   // Initialize and check for cameras
   useEffect(() => {
+    mountedRef.current = true;
     Html5Qrcode.getCameras()
       .then((devices) => {
         if (devices && devices.length) {
@@ -52,28 +79,26 @@ export default function QRScanner({
       });
 
     return () => {
-      if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current.stop().catch(console.error);
-      }
+      mountedRef.current = false;
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+      void stopAndClearScanner();
     };
   }, []);
 
   const startScanner = async (cameraId: string) => {
-    if (!cameraId) return;
+    if (!cameraId || transitionRef.current || !mountedRef.current) return;
 
-    if (scannerRef.current?.isScanning) {
-      await scannerRef.current.stop();
-    }
+    transitionRef.current = true;
+    await stopAndClearScanner();
 
     try {
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode("qr-reader", {
-          verbose: false,
-          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
-        });
-      }
+      const scanner = new Html5Qrcode("qr-reader", {
+        verbose: false,
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+      });
+      scannerRef.current = scanner;
 
-      await scannerRef.current.start(
+      await scanner.start(
         cameraId,
         {
           fps: 10,
@@ -81,7 +106,7 @@ export default function QRScanner({
           aspectRatio: 1.0,
         },
         async (decodedText) => {
-          if (cooldownRef.current) return;
+          if (!mountedRef.current || cooldownRef.current) return;
           
           cooldownRef.current = true;
           setScanStatus("loading");
@@ -126,7 +151,9 @@ export default function QRScanner({
           }
 
           // Cooldown 3 detik sebelum bisa scan lagi
-          setTimeout(() => {
+          if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+          cooldownTimerRef.current = setTimeout(() => {
+            if (!mountedRef.current) return;
             setScanStatus("idle");
             cooldownRef.current = false;
           }, 3000);
@@ -135,31 +162,39 @@ export default function QRScanner({
           // Ignored. html5-qrcode spam warnings when no QR is found in frame.
         }
       );
-      
-      setIsScanning(true);
+      if (mountedRef.current) setIsScanning(true);
     } catch (err) {
       console.error("Failed to start scanner:", err);
-      toast.error("Gagal memulai kamera.");
+      if (mountedRef.current) {
+        setIsScanning(false);
+        toast.error("Gagal memulai kamera. Coba izinkan akses kamera lalu ulangi.");
+      }
+      await stopAndClearScanner();
+    } finally {
+      transitionRef.current = false;
     }
   };
 
   const stopScanner = async () => {
-    if (scannerRef.current?.isScanning) {
-      await scannerRef.current.stop();
+    if (transitionRef.current) return;
+    transitionRef.current = true;
+    await stopAndClearScanner();
+    if (mountedRef.current) {
       setIsScanning(false);
       setScanStatus("idle");
     }
+    transitionRef.current = false;
   };
 
   const toggleCamera = () => {
-    if (cameras.length < 2) return;
+    if (cameras.length < 2 || transitionRef.current) return;
     const currentIndex = cameras.findIndex(c => c.id === activeCameraId);
     const nextIndex = (currentIndex + 1) % cameras.length;
     const nextCameraId = cameras[nextIndex].id;
     setActiveCameraId(nextCameraId);
     
     if (isScanning) {
-      startScanner(nextCameraId);
+      void startScanner(nextCameraId);
     }
   };
 

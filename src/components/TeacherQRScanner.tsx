@@ -33,8 +33,35 @@ export default function TeacherQRScanner({
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const cooldownRef = useRef(false);
+  const transitionRef = useRef(false);
+  const mountedRef = useRef(true);
+  const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stopAndClearScanner = async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+
+    try {
+      if (scanner.isScanning) {
+        await scanner.stop();
+      }
+    } catch (error) {
+      console.warn("Failed to stop teacher QR scanner:", error);
+    }
+
+    try {
+      scanner.clear();
+    } catch (error) {
+      console.warn("Failed to clear teacher QR scanner:", error);
+    }
+
+    if (scannerRef.current === scanner) {
+      scannerRef.current = null;
+    }
+  };
 
   useEffect(() => {
+    mountedRef.current = true;
     Html5Qrcode.getCameras()
       .then((devices) => {
         if (devices && devices.length) {
@@ -55,32 +82,31 @@ export default function TeacherQRScanner({
       });
 
     return () => {
-      if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current.stop().catch(console.error);
-      }
+      mountedRef.current = false;
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+      void stopAndClearScanner();
     };
   }, []);
 
-  const startScanner = async () => {
-    if (!activeCameraId) return;
+  const startScanner = async (cameraId = activeCameraId) => {
+    if (!cameraId || transitionRef.current || !mountedRef.current) return;
 
-    if (scannerRef.current && scannerRef.current.isScanning) {
-      await scannerRef.current.stop();
-    }
-
-    const html5QrCode = new Html5Qrcode("reader");
-    scannerRef.current = html5QrCode;
+    transitionRef.current = true;
+    await stopAndClearScanner();
 
     try {
+      const html5QrCode = new Html5Qrcode("reader");
+      scannerRef.current = html5QrCode;
+
       await html5QrCode.start(
-        activeCameraId,
+        cameraId,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
         },
         async (decodedText) => {
-          if (cooldownRef.current) return;
+          if (!mountedRef.current || cooldownRef.current) return;
           
           cooldownRef.current = true;
           setScanStatus("loading");
@@ -121,7 +147,9 @@ export default function TeacherQRScanner({
             toast.error("Terjadi kesalahan jaringan.");
           }
 
-          setTimeout(() => {
+          if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+          cooldownTimerRef.current = setTimeout(() => {
+            if (!mountedRef.current) return;
             setScanStatus("idle");
             cooldownRef.current = false;
           }, 3000);
@@ -130,29 +158,35 @@ export default function TeacherQRScanner({
           // diabaikan
         }
       );
-      setIsScanning(true);
+      if (mountedRef.current) setIsScanning(true);
     } catch (err) {
       console.error("Failed to start scanner:", err);
-      toast.error("Gagal memulai scanner.");
+      if (mountedRef.current) {
+        setIsScanning(false);
+        toast.error("Gagal memulai scanner. Coba izinkan akses kamera lalu ulangi.");
+      }
+      await stopAndClearScanner();
+    } finally {
+      transitionRef.current = false;
     }
   };
 
   const stopScanner = async () => {
-    if (scannerRef.current && scannerRef.current.isScanning) {
-      await scannerRef.current.stop();
-      setIsScanning(false);
-    }
+    if (transitionRef.current) return;
+    transitionRef.current = true;
+    await stopAndClearScanner();
+    if (mountedRef.current) setIsScanning(false);
+    transitionRef.current = false;
   };
 
   const switchCamera = () => {
-    if (cameras.length <= 1) return;
+    if (cameras.length <= 1 || transitionRef.current) return;
     const currentIndex = cameras.findIndex(c => c.id === activeCameraId);
     const nextIndex = (currentIndex + 1) % cameras.length;
-    setActiveCameraId(cameras[nextIndex].id);
+    const nextCameraId = cameras[nextIndex].id;
+    setActiveCameraId(nextCameraId);
     if (isScanning) {
-      stopScanner().then(() => {
-        setTimeout(startScanner, 300);
-      });
+      void startScanner(nextCameraId);
     }
   };
 
@@ -171,7 +205,7 @@ export default function TeacherQRScanner({
             </p>
             {hasCameras ? (
               <button
-                onClick={startScanner}
+                onClick={() => void startScanner()}
                 className="btn-primary bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-xl font-bold text-sm"
               >
                 Aktifkan Kamera Scanner

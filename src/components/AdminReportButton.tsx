@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import toast from "react-hot-toast";
 
 interface Props {
   students: any[];
@@ -91,7 +92,7 @@ export default function AdminReportButton({ students, className }: Props) {
       doc.save(`Rekap_Siswa_${format(new Date(), "dd-MM-yyyy")}.pdf`);
     } catch (error) {
       console.error(error);
-      alert("Gagal men-generate PDF.");
+      toast.error("Gagal membuat laporan PDF. Coba lagi.");
     } finally {
       setLoading(false);
     }

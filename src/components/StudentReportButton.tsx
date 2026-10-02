@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import toast from "react-hot-toast";
 
 interface Props {
   student: any;
@@ -102,7 +103,7 @@ export default function StudentReportButton({ student, totalScore, levelInfo }: 
       doc.save(`Rapor_${student.name.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
       console.error(error);
-      alert("Gagal men-generate PDF.");
+      toast.error("Gagal membuat rapor PDF. Coba lagi.");
     } finally {
       setLoading(false);
     }
