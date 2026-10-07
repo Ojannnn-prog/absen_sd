@@ -103,7 +103,19 @@ export default function LoginPage() {
 
   // Login dengan OAuth Clerk (Google, GitHub, TikTok)
   const handleOAuthLogin = async (strategy: "oauth_google" | "oauth_github" | "oauth_tiktok") => {
+    if (!isClerkLoaded) {
+      toast("Layanan Google sedang memuat... Mohon tunggu 1-2 detik.", { icon: "⏳" });
+      return;
+    }
+
     setOauthLoading(strategy);
+
+    // Timeout pengaman agar tombol tidak macet berputar jika jaringan lambat
+    const timeoutId = setTimeout(() => {
+      setOauthLoading(null);
+      toast.error("Koneksi ke Google memerlukan waktu lebih lama dari biasanya. Silakan coba klik sekali lagi.");
+    }, 8000);
+
     try {
       // 1. Coba signIn.sso() (Clerk v7+ Core 3 API standar)
       if (signIn && typeof (signIn as any).sso === "function") {
@@ -140,6 +152,7 @@ export default function LoginPage() {
 
       // 3. Fallback: Buka modal dialog resmi Clerk
       if (openSignIn) {
+        clearTimeout(timeoutId);
         openSignIn({
           fallbackRedirectUrl: "/login",
           signUpFallbackRedirectUrl: "/login",
@@ -148,6 +161,7 @@ export default function LoginPage() {
         return;
       }
     } catch (err: any) {
+      clearTimeout(timeoutId);
       setOauthLoading(null);
       console.error(`Clerk ${strategy} Login Error:`, err);
       toast.error(err.errors?.[0]?.message || err.message || `Gagal membuka login ${strategy}`);
