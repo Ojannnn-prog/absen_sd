@@ -13,6 +13,8 @@ export async function createTeacher(formData: FormData) {
   const nip = formData.get("nip") as string;
   const classGroup = formData.get("classGroup") as string || "A";
   const passwordInput = formData.get("password") as string;
+  const emailInput = formData.get("email") as string;
+  const email = emailInput && emailInput.trim() !== "" ? emailInput.trim().toLowerCase() : null;
 
   if (!name || !username) {
     return { success: false, message: "Nama dan username wajib diisi" };
@@ -38,6 +40,7 @@ export async function createTeacher(formData: FormData) {
         nip: nip && nip.trim() !== "" ? nip.trim() : null,
         classGroup,
         password: hashedPassword,
+        email,
         avatarUnlocked: true, // Default premium avatar untuk Guru
       },
       select: {
@@ -48,6 +51,8 @@ export async function createTeacher(formData: FormData) {
         classGroup: true,
         profileImage: true,
         avatarConfig: true,
+        email: true,
+        clerkId: true,
       },
     });
 
@@ -72,6 +77,7 @@ export async function updateTeacher(id: string, formData: FormData) {
   const nip = formData.get("nip") as string;
   const classGroup = formData.get("classGroup") as string;
   const newPassword = formData.get("newPassword") as string;
+  const emailInput = formData.get("email");
 
   const updateData: any = {};
 
@@ -79,6 +85,11 @@ export async function updateTeacher(id: string, formData: FormData) {
   if (username && username.trim() !== "") updateData.username = username.trim();
   updateData.nip = nip && nip.trim() !== "" ? nip.trim() : null;
   if (classGroup) updateData.classGroup = classGroup;
+
+  if (emailInput !== null) {
+    const emailStr = (emailInput as string).trim().toLowerCase();
+    updateData.email = emailStr !== "" ? emailStr : null;
+  }
 
   if (newPassword && newPassword.trim() !== "") {
     updateData.password = await hashPassword(newPassword.trim());

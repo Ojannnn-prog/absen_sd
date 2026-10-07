@@ -26,6 +26,8 @@ export default async function AdminTeacherPage() {
       nickname: true,
       activeTheme: true,
       activeTitle: true,
+      email: true,
+      clerkId: true,
     },
   });
 

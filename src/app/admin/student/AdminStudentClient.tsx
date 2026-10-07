@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateStudent, deleteStudent, bulkUpdateStudentClass } from "./actions";
+import { unlinkUserGoogleAccount } from "@/app/login/clerkActions";
 import toast from "react-hot-toast";
 import { Search, Edit2, Trash2, Download, Eye, EyeOff, Loader2, X, Save, User as UserIcon } from "lucide-react";
 import QRCode from "qrcode";
@@ -45,6 +46,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
   // Form states
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
   const [birthPlace, setBirthPlace] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -78,6 +80,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
     setEditingStudent(student);
     setName(student.name);
     setPassword("");
+    setEmail(student.email || "");
     setGender(student.gender || "");
     setBirthPlace(student.birthPlace || "");
     setBirthDate(student.birthDate ? new Date(student.birthDate).toISOString().split('T')[0] : "");
@@ -88,6 +91,26 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingStudent(null);
+    setEmail("");
+  };
+
+  const handleUnlinkGoogleStudent = async (id: string) => {
+    if (!confirm("Putuskan tautan akun Google siswa ini? Siswa nantinya dapat menautkan kembali akun Google miliknya.")) return;
+    toast.loading("Memutuskan tautan...", { id: "unlink-student" });
+    try {
+      const res = await unlinkUserGoogleAccount(id, "student");
+      if (res.success) {
+        toast.success(res.message, { id: "unlink-student" });
+        setStudents(prev => prev.map(s => s.id === id ? { ...s, clerkId: null } : s));
+        if (editingStudent && editingStudent.id === id) {
+          setEditingStudent((prev: any) => ({ ...prev, clerkId: null }));
+        }
+      } else {
+        toast.error(res.message, { id: "unlink-student" });
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem", { id: "unlink-student" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,6 +126,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
       const res = await updateStudent(editingStudent.id, {
         name,
         password: password.trim() ? password : undefined,
+        email: email.trim() ? email.trim() : null,
         gender,
         birthPlace,
         birthDate: birthDate ? new Date(birthDate) : null,
@@ -343,14 +367,28 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                           </div>
                           <div>
                             <div className="font-bold text-gray-900">{student.name}</div>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
                               <div className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md inline-block">
                                 NIS: {student.studentCode}
                               </div>
                               <div className="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md inline-block border border-indigo-100">
                                 Kelas 6{student.classGroup || "A"}
                               </div>
+                              {student.clerkId ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200" title="Akun tertaut ke Google/OAuth">
+                                  🟢 Google Aktif
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100" title="Belum ditautkan ke Google">
+                                  ⚪ Belum Ditautkan
+                                </span>
+                              )}
                             </div>
+                            {student.email && (
+                              <div className="text-[11px] text-gray-500 font-medium mt-1 truncate max-w-[200px]" title={student.email}>
+                                ✉️ {student.email}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -555,6 +593,42 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                   ))}
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Email Siswa (Opsional)</label>
+                <input 
+                  type="email" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[var(--theme-primary,var(--color-primary))] focus:border-transparent outline-none font-medium text-gray-900 transition-all"
+                  placeholder="siswa@gmail.com (Opsional)"
+                />
+                <p className="text-xs text-gray-500 mt-1">Kosongkan jika siswa belum memiliki email. Jika diisi, siswa bisa login langsung via Google.</p>
+              </div>
+
+              {editingStudent.clerkId ? (
+                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                    <div>
+                      <p className="text-xs font-bold text-emerald-800">Akun Google / OAuth Terhubung</p>
+                      <p className="text-[11px] text-emerald-600 font-medium">Siswa dapat login langsung via tombol Google.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUnlinkGoogleStudent(editingStudent.id)}
+                    className="text-xs font-bold px-3 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
+                  >
+                    Putuskan Tautan
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 p-3.5 rounded-2xl flex items-center gap-2.5 text-xs text-gray-500">
+                  <span className="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0"></span>
+                  <span>Belum ada akun Google yang ditautkan ke akun siswa ini.</span>
+                </div>
+              )}
 
               <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-2">
                 <button 

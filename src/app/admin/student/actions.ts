@@ -11,6 +11,7 @@ export async function updateStudent(id: string, data: {
   birthPlace: string;
   birthDate: Date | null;
   classGroup?: string;
+  email?: string | null;
 }) {
   try {
     const session = await getSession();
@@ -22,6 +23,10 @@ export async function updateStudent(id: string, data: {
       birthPlace: data.birthPlace,
       birthDate: data.birthDate
     };
+
+    if (data.email !== undefined) {
+      updateData.email = data.email && data.email.trim() !== "" ? data.email.trim().toLowerCase() : null;
+    }
 
     if (data.classGroup) {
       updateData.classGroup = data.classGroup;

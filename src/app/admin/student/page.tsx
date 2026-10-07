@@ -34,6 +34,8 @@ export default async function AdminStudentPage() {
       attendances: true,
       studentProgress: true,
       quizAttempts: true,
+      email: true,
+      clerkId: true,
     },
   });
 

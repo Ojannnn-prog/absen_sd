@@ -1,7 +1,7 @@
 import CalendarWidget from "@/components/CalendarWidget";
 import AnnouncementBoard from "@/components/AnnouncementBoard";
 import LeaderboardView from "@/components/LeaderboardView";
-import { QrCode, ArrowRight } from "lucide-react";
+import { LogIn, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -27,8 +27,8 @@ export default async function Home() {
         <div className="flex-1 flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <img src="/icon.svg" alt="Logo Absensi" className="w-16 h-16 sm:w-20 sm:h-20 drop-shadow-lg" />
-            <h1 className="text-4xl md:text-5xl font-extrabold text-text-header leading-tight">
-              Absensi Lebih Cepat <br className="hidden lg:block"/> dengan <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">QR Code</span>
+            <h1 className="text-4xl md:text-5xl font-medium text-text-header leading-tight">
+              Absensi Lebih Cepat <br className="hidden lg:block"/> dengan <strong className="font-extrabold text-text-header">QR Code</strong>
             </h1>
           </div>
           <p className="text-lg text-text-body max-w-xl">
@@ -36,13 +36,13 @@ export default async function Home() {
           </p>
           
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link href="/admin/scanner" className="btn-primary flex items-center gap-2 px-6 py-3 text-lg shadow-md shadow-primary/20">
-              <QrCode className="w-5 h-5" />
-              Scan QR Sekarang
-            </Link>
-            <Link href="/student" className="flex items-center gap-2 px-6 py-3 font-semibold text-gray-600 hover:text-primary transition-colors">
-              Masuk sebagai Siswa
-              <ArrowRight className="w-4 h-4" />
+            <Link 
+              href="/login" 
+              className="btn-primary inline-flex items-center gap-2.5 px-7 py-3.5 text-base font-bold shadow-lg shadow-primary/25 rounded-2xl hover:opacity-95 transition-all"
+            >
+              <LogIn className="w-5 h-5" />
+              Login ke Aplikasi
+              <ArrowRight className="w-4 h-4 ml-0.5" />
             </Link>
           </div>
         </div>
