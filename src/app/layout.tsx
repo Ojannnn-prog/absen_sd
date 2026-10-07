@@ -63,38 +63,44 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getSession();
-  const publishableKey =
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-    "pk_test_aGFuZHkta2luZ2Zpc2gtNjU1Ni5jbGVyay5hY2NvdW50cy5kZXYk";
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-  return (
-    <ClerkProvider publishableKey={publishableKey} dynamic>
-      <html lang="id" className={`${plusJakartaSans.variable}`}>
-        <body className="bg-bg-light min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
-          <ToastProvider />
-          <CookieConsent />
-          <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/70 border-b border-gray-100/50 supports-[backdrop-filter]:bg-white/40 px-6 py-4 flex justify-between items-center transition-all duration-300 relative">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white font-bold shadow-md shadow-primary/20">
-                SD
-              </div>
-              <h1 className="text-xl font-extrabold text-text-header tracking-tight">SDN 231 Sukaasih</h1>
+  const content = (
+    <html lang="id" className={`${plusJakartaSans.variable}`}>
+      <body className="bg-bg-light min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
+        <ToastProvider />
+        <CookieConsent />
+        <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/70 border-b border-gray-100/50 supports-[backdrop-filter]:bg-white/40 px-6 py-4 flex justify-between items-center transition-all duration-300 relative">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-white font-bold shadow-md shadow-primary/20">
+              SD
             </div>
-            <Navbar role={session?.role || null} />
-          </header>
+            <h1 className="text-xl font-extrabold text-text-header tracking-tight">SDN 231 Sukaasih</h1>
+          </div>
+          <Navbar role={session?.role || null} />
+        </header>
 
-          {/* Main Content */}
-          <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8">
-            {children}
-          </main>
+        {/* Main Content */}
+        <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8">
+          {children}
+        </main>
 
-          {/* Footer */}
-          <footer className="w-full py-6 text-center text-sm text-text-body mt-auto">
-            &copy; {new Date().getFullYear()} SDN 231 Sukaasih. All rights reserved.
-          </footer>
-          <Analytics />
-        </body>
-      </html>
-    </ClerkProvider>
+        {/* Footer */}
+        <footer className="w-full py-6 text-center text-sm text-text-body mt-auto">
+          &copy; {new Date().getFullYear()} SDN 231 Sukaasih. All rights reserved.
+        </footer>
+        <Analytics />
+      </body>
+    </html>
   );
+
+  if (publishableKey) {
+    return (
+      <ClerkProvider publishableKey={publishableKey} dynamic>
+        {content}
+      </ClerkProvider>
+    );
+  }
+
+  return content;
 }

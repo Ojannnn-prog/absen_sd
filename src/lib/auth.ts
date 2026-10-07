@@ -76,14 +76,11 @@ export async function getSession(): Promise<SessionPayload | null> {
   }
 
   // 2. Cek sesi Clerk (Login Google / OAuth)
-  try {
-    if (!process.env.CLERK_SECRET_KEY) {
-      process.env.CLERK_SECRET_KEY = "sk_test_xcRc9sw6Jh1CcZkj94EsEuOR1dNdmmzFpW8qRgUiJz";
-    }
-    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_aGFuZHkta2luZ2Zpc2gtNjU1Ni5jbGVyay5hY2NvdW50cy5kZXYk";
-    }
+  if (!process.env.CLERK_SECRET_KEY || !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return null;
+  }
 
+  try {
     const clerkAuth = await auth();
     if (clerkAuth?.userId) {
       const clerkId = clerkAuth.userId;

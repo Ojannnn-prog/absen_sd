@@ -4,14 +4,6 @@ import { clerkMiddleware } from '@clerk/nextjs/server';
 import { jwtVerify } from 'jose';
 import { AUTH_AUDIENCE, AUTH_ISSUER } from '@/lib/auth-constants';
 
-const CLERK_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-  "pk_test_aGFuZHkta2luZ2Zpc2gtNjU1Ni5jbGVyay5hY2NvdW50cy5kZXYk";
-
-const CLERK_SECRET_KEY =
-  process.env.CLERK_SECRET_KEY ||
-  "sk_test_xcRc9sw6Jh1CcZkj94EsEuOR1dNdmmzFpW8qRgUiJz";
-
 function getAuthKey() {
   const secretKey = process.env.JWT_SECRET;
   if (!secretKey || secretKey.length < 32) {
@@ -91,28 +83,30 @@ async function handleLocalAuth(request: NextRequest, clerkUserId?: string | null
   return NextResponse.next();
 }
 
-const clerkHandler = clerkMiddleware(
-  async (auth, request) => {
-    try {
-      const clerkAuth = await auth();
-      return await handleLocalAuth(request as NextRequest, clerkAuth?.userId);
-    } catch {
-      return await handleLocalAuth(request as NextRequest, null);
-    }
-  },
-  {
-    publishableKey: CLERK_PUBLISHABLE_KEY,
-    secretKey: CLERK_SECRET_KEY,
-  }
+const hasClerkKeys = Boolean(
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY
 );
 
+const clerkHandler = hasClerkKeys
+  ? clerkMiddleware(async (auth, request) => {
+      try {
+        const clerkAuth = await auth();
+        return await handleLocalAuth(request as NextRequest, clerkAuth?.userId);
+      } catch {
+        return await handleLocalAuth(request as NextRequest, null);
+      }
+    })
+  : null;
+
 export default async function proxy(request: NextRequest, event: any) {
-  try {
-    return await clerkHandler(request as any, event);
-  } catch {
-    // Fail-safe jika Clerk mengalami kendala jaringan atau environment
-    return await handleLocalAuth(request, null);
+  if (clerkHandler) {
+    try {
+      return await clerkHandler(request as any, event);
+    } catch {
+      return await handleLocalAuth(request, null);
+    }
   }
+  return await handleLocalAuth(request, null);
 }
 
 export const config = {
