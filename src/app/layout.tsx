@@ -63,9 +63,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getSession();
+  const publishableKey =
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    "pk_test_aGFuZHkta2luZ2Zpc2gtNjU1Ni5jbGVyay5hY2NvdW50cy5kZXYk";
 
   return (
-    <ClerkProvider dynamic>
+    <ClerkProvider publishableKey={publishableKey} dynamic>
       <html lang="id" className={`${plusJakartaSans.variable}`}>
         <body className="bg-bg-light min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
           <ToastProvider />

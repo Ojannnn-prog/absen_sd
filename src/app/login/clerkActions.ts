@@ -8,6 +8,13 @@ import { revalidatePath } from "next/cache";
 
 export async function checkClerkLinkingStatus() {
   try {
+    if (!process.env.CLERK_SECRET_KEY) {
+      process.env.CLERK_SECRET_KEY = "sk_test_xcRc9sw6Jh1CcZkj94EsEuOR1dNdmmzFpW8qRgUiJz";
+    }
+    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_aGFuZHkta2luZ2Zpc2gtNjU1Ni5jbGVyay5hY2NvdW50cy5kZXYk";
+    }
+
     const clerkAuth = await auth();
     if (!clerkAuth?.userId) {
       return { isSignedIn: false, isLinked: false };
@@ -76,6 +83,13 @@ export async function checkClerkLinkingStatus() {
 
 export async function linkSchoolAccountWithClerk(usernameInput: string, passwordInput: string) {
   try {
+    if (!process.env.CLERK_SECRET_KEY) {
+      process.env.CLERK_SECRET_KEY = "sk_test_xcRc9sw6Jh1CcZkj94EsEuOR1dNdmmzFpW8qRgUiJz";
+    }
+    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_aGFuZHkta2luZ2Zpc2gtNjU1Ni5jbGVyay5hY2NvdW50cy5kZXYk";
+    }
+
     const clerkAuth = await auth();
     if (!clerkAuth?.userId) {
       return {
