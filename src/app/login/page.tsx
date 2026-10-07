@@ -176,8 +176,8 @@ export default function LoginPage() {
       } else {
         toast.error(res.message || "Gagal menautkan akun sekolah.", { id: toastId });
       }
-    } catch (err) {
-      toast.error("Terjadi kesalahan sistem saat menautkan akun.", { id: toastId });
+    } catch (err: any) {
+      toast.error(`Terjadi kesalahan sistem: ${err?.message || err}`, { id: toastId });
     } finally {
       setLinkLoading(false);
     }

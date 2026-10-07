@@ -82,22 +82,39 @@ export async function linkSchoolAccountWithClerk(usernameInput: string, password
   if (!process.env.CLERK_SECRET_KEY || !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
     return {
       success: false,
-      message: "Layanan autentikasi Google belum dikonfigurasi.",
+      message: "Layanan autentikasi Google belum dikonfigurasi di Environment Variables.",
+    };
+  }
+
+  let clerkId: string | null = null;
+  let primaryEmail: string | null = null;
+
+  try {
+    const clerkAuth = await auth();
+    clerkId = clerkAuth?.userId || null;
+  } catch (err: any) {
+    console.error("Clerk auth() error in Server Action:", err);
+    return {
+      success: false,
+      message: `Gagal membaca sesi Clerk: ${err?.message || "Middleware sesi belum aktif"}`,
+    };
+  }
+
+  if (!clerkId) {
+    return {
+      success: false,
+      message: "Sesi Google tidak terdeteksi. Silakan muat ulang halaman atau login Google kembali.",
     };
   }
 
   try {
-    const clerkAuth = await auth();
-    if (!clerkAuth?.userId) {
-      return {
-        success: false,
-        message: "Sesi Google tidak terdeteksi. Silakan klik Masuk dengan Google terlebih dahulu.",
-      };
-    }
-
-    const clerkId = clerkAuth.userId;
     const clerkUser = await currentUser();
-    const primaryEmail = clerkUser?.emailAddresses?.[0]?.emailAddress?.toLowerCase().trim() || null;
+    primaryEmail = clerkUser?.emailAddresses?.[0]?.emailAddress?.toLowerCase().trim() || null;
+  } catch (err: any) {
+    console.warn("Could not fetch clerk currentUser:", err);
+  }
+
+  try {
     const username = usernameInput.trim();
 
     // 1. Cek Admin
@@ -171,9 +188,12 @@ export async function linkSchoolAccountWithClerk(usernameInput: string, password
     }
 
     return { success: false, message: "Username atau NIS tidak ditemukan di sistem sekolah." };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error linking account:", error);
-    return { success: false, message: "Terjadi kesalahan sistem saat menautkan akun." };
+    return {
+      success: false,
+      message: `Terjadi kesalahan sistem: ${error?.message || "Gagal menyimpan ke database"}`,
+    };
   }
 }
 
