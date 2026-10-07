@@ -66,6 +66,9 @@ model Student {
   unlockedTitles  String[]          @default([]) // Titel yang sudah dibeli
   avatarUnlocked  Boolean           @default(false) // Status apakah Avatar Pass sudah dibeli
   avatarConfig    String? // JSON string untuk menyimpan konfigurasi wajah, mulut, mata, dll
+  faceDescriptor  Json? // Array 128 angka float embedding fitur wajah
+  facePhoto       String? // Thumbnail foto wajah terdaftar (Base64)
+  faceEnrolledAt  DateTime? // Waktu pendaftaran wajah
   attendances     Attendance[]
   studentProgress StudentProgress[]
   quizAttempts    QuizAttempt[]

@@ -3,18 +3,36 @@
 import { useState } from "react";
 import { updateStudent, deleteStudent, bulkUpdateStudentClass } from "./actions";
 import toast from "react-hot-toast";
-import { Search, Edit2, Trash2, Download, Eye, EyeOff, Loader2, X, Save, User as UserIcon } from "lucide-react";
+import { Search, Edit2, Trash2, Download, Eye, EyeOff, Loader2, X, Save, User as UserIcon, Camera } from "lucide-react";
 import QRCode from "qrcode";
 import { getAvatarUrl } from "@/lib/avatar";
 import AdminReportButton from "@/components/AdminReportButton";
 import ConfirmModal from "@/components/ConfirmModal";
 import MonthlyReportModal from "@/components/MonthlyReportModal";
+import FaceEnrollmentModal from "@/components/FaceEnrollmentModal";
 
 
 export default function AdminStudentClient({ initialStudents }: { initialStudents: any[] }) {
   const [students, setStudents] = useState(initialStudents);
   const [search, setSearch] = useState("");
   const [studentToDelete, setStudentToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  // Face enrollment modal state
+  const [faceModalStudent, setFaceModalStudent] = useState<any | null>(null);
+  const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
+
+  const openFaceModal = (student: any) => {
+    setFaceModalStudent(student);
+    setIsFaceModalOpen(true);
+  };
+
+  const handleFaceSuccess = (studentId: string, photoBase64: string, enrolledAt: Date) => {
+    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, facePhoto: photoBase64, faceEnrolledAt: enrolledAt } : s));
+  };
+
+  const handleFaceDelete = (studentId: string) => {
+    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, facePhoto: null, faceEnrolledAt: null } : s));
+  };
   
   const getOnlineStatus = (lastActive: string | null) => {
     if (!lastActive) return { isOnline: false, text: "Belum pernah login" };
@@ -311,6 +329,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                 <th className="py-4 px-6 font-bold text-gray-600">Gamifikasi</th>
                 <th className="py-4 px-6 font-bold text-gray-600">Kata Sandi</th>
                 <th className="py-4 px-6 font-bold text-gray-600">TTL & Gender</th>
+                <th className="py-4 px-6 font-bold text-gray-600 text-center">Scan Wajah</th>
                 <th className="py-4 px-6 font-bold text-gray-600 text-center">Status Akses</th>
                 <th className="py-4 px-6 font-bold text-gray-600 text-center">QR Code</th>
                 <th className="py-4 px-6 font-bold text-gray-600 text-center">Aksi</th>
@@ -319,7 +338,7 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
             <tbody className="divide-y divide-gray-100">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-500 font-medium">
+                  <td colSpan={9} className="py-12 text-center text-gray-500 font-medium">
                     {search ? "Pencarian tidak ditemukan." : "Belum ada data siswa."}
                   </td>
                 </tr>
@@ -380,6 +399,32 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
                         <div className="text-xs text-gray-500 mt-1 uppercase font-bold">
                           {student.gender === "L" ? "Laki-laki" : student.gender === "P" ? "Perempuan" : "-"}
                         </div>
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        {student.facePhoto ? (
+                          <div className="inline-flex items-center gap-2">
+                            <img 
+                              src={student.facePhoto} 
+                              alt={student.name} 
+                              className="w-9 h-9 rounded-xl object-cover border-2 border-green-500 shadow-sm"
+                            />
+                            <button
+                              onClick={() => openFaceModal(student)}
+                              className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-xl transition-colors border border-green-200"
+                              title="Ubah / Hapus Wajah"
+                            >
+                              Terdaftar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => openFaceModal(student)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 font-bold text-xs rounded-xl transition-colors border border-gray-200 hover:border-indigo-200"
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                            + Daftarkan
+                          </button>
+                        )}
                       </td>
                       <td className="py-4 px-6">
                         {(() => {
@@ -591,6 +636,15 @@ export default function AdminStudentClient({ initialStudents }: { initialStudent
         }
         confirmText="Ya, Hapus Siswa"
         variant="danger"
+      />
+
+      {/* Face Enrollment Modal */}
+      <FaceEnrollmentModal
+        isOpen={isFaceModalOpen}
+        onClose={() => setIsFaceModalOpen(false)}
+        student={faceModalStudent}
+        onSuccess={handleFaceSuccess}
+        onDeleteSuccess={handleFaceDelete}
       />
     </div>
   );

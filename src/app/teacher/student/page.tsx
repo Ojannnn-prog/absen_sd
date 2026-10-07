@@ -42,6 +42,8 @@ export default async function TeacherStudentPage() {
         include: { resource: true },
         orderBy: { createdAt: 'desc' }
       },
+      facePhoto: true,
+      faceEnrolledAt: true,
     },
   });
 

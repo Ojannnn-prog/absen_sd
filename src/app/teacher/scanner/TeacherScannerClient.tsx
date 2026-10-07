@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, History, UserCheck, ShieldCheck, Crown } from "lucide-react";
+import { ArrowLeft, History, UserCheck, ShieldCheck, Crown, QrCode, Sparkles } from "lucide-react";
 import TeacherQRScanner from "@/components/TeacherQRScanner";
+import FaceScanner from "@/components/FaceScanner";
 
 type ScannedStudent = {
   id: string;
@@ -22,6 +23,7 @@ type RecentScan = {
 
 export default function TeacherScannerClient({ teacher }: { teacher: any }) {
   const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
+  const [scannerMode, setScannerMode] = useState<"qr" | "face">("qr");
   const classGroup = teacher.classGroup || "A";
 
   const handleScanSuccess = (data: { student: ScannedStudent, timestamp: Date, isNew: boolean }) => {
@@ -55,16 +57,48 @@ export default function TeacherScannerClient({ teacher }: { teacher: any }) {
             </div>
             <h1 className="text-2xl font-black text-gray-900 tracking-tight mt-1">Scanner Absensi Guru (Kelas 6{classGroup})</h1>
             <p className="text-gray-500 text-sm mt-1">
-              Arahkan QR Code siswa ke kamera. Sistem secara otomatis menolak siswa dari kelas lain.
+              Pilih mode absensi: Scan QR Code atau Pemindai Wajah AI. Hanya siswa Kelas 6{classGroup} yang dapat diabsen.
             </p>
           </div>
         </div>
       </div>
 
+      {/* Mode Switcher Tabs */}
+      <div className="flex bg-gray-100/80 p-1.5 rounded-2xl w-full max-w-md mx-auto shadow-inner border border-gray-200/50">
+        <button
+          type="button"
+          onClick={() => setScannerMode("qr")}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+            scannerMode === "qr"
+              ? "bg-white text-indigo-600 shadow-sm"
+              : "text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <QrCode className="w-4 h-4" />
+          Scan QR Code
+        </button>
+        <button
+          type="button"
+          onClick={() => setScannerMode("face")}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+            scannerMode === "face"
+              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+              : "text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          Scan Wajah (AI)
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Scanner Section */}
         <div className="lg:col-span-3 flex flex-col items-center">
-          <TeacherQRScanner teacherClassGroup={classGroup} onScanSuccess={handleScanSuccess} />
+          {scannerMode === "qr" ? (
+            <TeacherQRScanner teacherClassGroup={classGroup} onScanSuccess={handleScanSuccess} />
+          ) : (
+            <FaceScanner teacherClassGroup={classGroup} onScanSuccess={handleScanSuccess} />
+          )}
         </div>
 
         {/* Recent Scans Sidebar */}

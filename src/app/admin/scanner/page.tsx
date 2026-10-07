@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, History, UserCheck } from "lucide-react";
+import { ArrowLeft, History, UserCheck, QrCode, Sparkles } from "lucide-react";
 import QRScanner from "@/components/QRScanner";
+import FaceScanner from "@/components/FaceScanner";
 
 type ScannedStudent = {
   id: string;
@@ -21,6 +22,7 @@ type RecentScan = {
 
 export default function ScannerPage() {
   const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
+  const [scannerMode, setScannerMode] = useState<"qr" | "face">("qr");
 
   const handleScanSuccess = (data: { student: ScannedStudent, timestamp: Date, isNew: boolean }) => {
     // Add to the top of the list, keep only the latest 10
@@ -44,16 +46,48 @@ export default function ScannerPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-extrabold text-text-header tracking-tight">Kamera Pemindai</h1>
-            <p className="text-text-body text-sm mt-1">Arahkan QR Code siswa ke kamera untuk mencatat kehadiran otomatis.</p>
+            <p className="text-text-body text-sm mt-1">Pilih metode absensi: QR Code siswa atau Pemindai Wajah cerdas.</p>
           </div>
         </div>
+      </div>
+
+      {/* Mode Switcher Tabs */}
+      <div className="flex bg-gray-100/80 p-1.5 rounded-2xl w-full max-w-md mx-auto shadow-inner border border-gray-200/50">
+        <button
+          type="button"
+          onClick={() => setScannerMode("qr")}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+            scannerMode === "qr"
+              ? "bg-white text-indigo-600 shadow-sm"
+              : "text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <QrCode className="w-4 h-4" />
+          Scan QR Code
+        </button>
+        <button
+          type="button"
+          onClick={() => setScannerMode("face")}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+            scannerMode === "face"
+              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+              : "text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          Scan Wajah (AI)
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         
         {/* Scanner Section */}
         <div className="lg:col-span-3 flex flex-col items-center">
-          <QRScanner onScanSuccess={handleScanSuccess} />
+          {scannerMode === "qr" ? (
+            <QRScanner onScanSuccess={handleScanSuccess} />
+          ) : (
+            <FaceScanner onScanSuccess={handleScanSuccess} />
+          )}
         </div>
 
         {/* Recent Scans Sidebar */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Search, Plus, Trash2, Edit2, QrCode, ArrowLeft, Loader2, X, Eye, EyeOff, ShieldCheck, Download, FileSpreadsheet, FileText, AlertCircle, AlertTriangle, Trophy } from "lucide-react";
+import { Users, Search, Plus, Trash2, Edit2, QrCode, ArrowLeft, Loader2, X, Eye, EyeOff, ShieldCheck, Download, FileSpreadsheet, FileText, AlertCircle, AlertTriangle, Trophy, Camera } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import StudentQR from "@/components/StudentQR";
@@ -13,6 +13,7 @@ import TeacherImportStudentsModal from "@/components/TeacherImportStudentsModal"
 import CityInput from "@/components/CityInput";
 import TeacherProgressTable from "@/components/TeacherProgressTable";
 import MonthlyReportModal from "@/components/MonthlyReportModal";
+import FaceEnrollmentModal from "@/components/FaceEnrollmentModal";
 
 interface Props {
   teacher: any;
@@ -25,6 +26,23 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
   const [students, setStudents] = useState(initialStudents);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "unrecorded" | "progress">("all");
+
+  // Face Enrollment State
+  const [faceModalStudent, setFaceModalStudent] = useState<any | null>(null);
+  const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
+
+  const openFaceModal = (student: any) => {
+    setFaceModalStudent(student);
+    setIsFaceModalOpen(true);
+  };
+
+  const handleFaceSuccess = (studentId: string, photoBase64: string, enrolledAt: Date) => {
+    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, facePhoto: photoBase64, faceEnrolledAt: enrolledAt } : s));
+  };
+
+  const handleFaceDelete = (studentId: string) => {
+    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, facePhoto: null, faceEnrolledAt: null } : s));
+  };
 
   // Modals
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -505,6 +523,7 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
                   <th className="py-4 px-6">NIS / Username</th>
                   <th className="py-4 px-6">L/P</th>
                   <th className="py-4 px-6">Tempat, Tgl Lahir</th>
+                  <th className="py-4 px-4 text-center">Scan Wajah</th>
                   {activeTab === "unrecorded" && (
                     <th className="py-4 px-4 text-center">Absensi Hari Ini</th>
                   )}
@@ -536,6 +555,32 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
                       <td className="py-4 px-6 font-bold text-gray-700">{s.gender}</td>
                       <td className="py-4 px-6 text-gray-600">
                         {s.birthPlace || "-"}{s.birthDate ? `, ${new Date(s.birthDate).toLocaleDateString("id-ID")}` : ""}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        {s.facePhoto ? (
+                          <div className="inline-flex items-center gap-1.5">
+                            <img
+                              src={s.facePhoto}
+                              alt={s.name}
+                              className="w-8 h-8 rounded-xl object-cover border-2 border-green-500 shadow-sm"
+                            />
+                            <button
+                              onClick={() => openFaceModal(s)}
+                              className="px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-lg transition-colors border border-green-200"
+                              title="Ubah Wajah"
+                            >
+                              Terdaftar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => openFaceModal(s)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 font-bold text-xs rounded-lg transition-colors border border-gray-200 hover:border-indigo-200"
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                            Daftarkan
+                          </button>
+                        )}
                       </td>
                       {activeTab === "unrecorded" && (
                         <td className="py-4 px-4 text-center">
@@ -583,6 +628,13 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
                       </td>
                       <td className="py-4 px-6 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => openFaceModal(s)}
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                            title="Daftarkan / Pindai Wajah"
+                          >
+                            <Camera className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => setSelectedQRStudent(s)}
                             className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
@@ -926,6 +978,15 @@ export default function TeacherStudentClient({ teacher, initialStudents, totalRe
           </div>
         </div>
       )}
+
+      {/* Face Enrollment Modal */}
+      <FaceEnrollmentModal
+        isOpen={isFaceModalOpen}
+        onClose={() => setIsFaceModalOpen(false)}
+        student={faceModalStudent}
+        onSuccess={handleFaceSuccess}
+        onDeleteSuccess={handleFaceDelete}
+      />
     </div>
   );
 }
