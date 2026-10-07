@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { clerkMiddleware } from '@clerk/nextjs/server';
 import { jwtVerify } from 'jose';
 import { AUTH_AUDIENCE, AUTH_ISSUER } from '@/lib/auth-constants';
 
@@ -12,10 +11,10 @@ function getAuthKey() {
   return new TextEncoder().encode(secretKey);
 }
 
-// Handler otentikasi lokal berbasis JWT cookie
-async function handleLocalAuth(request: NextRequest, clerkUserId?: string | null) {
+export default async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
-
+  
+  // Rute yang butuh perlindungan
   const isAdminRoute = path.startsWith('/admin');
   const isStudentRoute = path.startsWith('/student');
   const isTeacherRoute = path.startsWith('/teacher');
@@ -23,7 +22,7 @@ async function handleLocalAuth(request: NextRequest, clerkUserId?: string | null
 
   const session = request.cookies.get('session')?.value;
 
-  // Jika sudah login lokal dan mencoba akses halaman login, lempar ke dashboard
+  // Jika sudah login dan mencoba akses halaman login, lempar ke dashboard
   if (isLoginRoute && session) {
     try {
       const { payload } = await jwtVerify(session, getAuthKey(), {
@@ -38,83 +37,44 @@ async function handleLocalAuth(request: NextRequest, clerkUserId?: string | null
       } else {
         return NextResponse.redirect(new URL('/student', request.url));
       }
-    } catch {
+    } catch (err) {
       // Jika token rusak, biarkan lanjut ke login
     }
   }
 
-  // Proteksi rute yang butuh autentikasi
   if (isAdminRoute || isStudentRoute || isTeacherRoute) {
-    // 1. Sesi lokal
-    if (session) {
-      try {
-        const { payload } = await jwtVerify(session, getAuthKey(), {
-          algorithms: ["HS256"],
-          issuer: AUTH_ISSUER,
-          audience: AUTH_AUDIENCE,
-        });
+    
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
 
-        // Cek otorisasi role lokal
-        if (isAdminRoute && payload.role !== 'admin') {
-          return NextResponse.redirect(new URL('/', request.url));
-        }
-        if (isStudentRoute && payload.role !== 'student' && payload.role !== 'admin') {
-          return NextResponse.redirect(new URL('/', request.url));
-        }
-        if (isTeacherRoute && payload.role !== 'teacher') {
-          return NextResponse.redirect(new URL('/', request.url));
-        }
-
-        return NextResponse.next();
-      } catch {
-        // Token tidak valid
+    try {
+      const { payload } = await jwtVerify(session, getAuthKey(), {
+        algorithms: ["HS256"],
+        issuer: AUTH_ISSUER,
+        audience: AUTH_AUDIENCE,
+      });
+      
+      // Cek otorisasi
+      if (isAdminRoute && payload.role !== 'admin') {
+        return NextResponse.redirect(new URL('/', request.url));
       }
+      if (isStudentRoute && payload.role !== 'student' && payload.role !== 'admin') {
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+      if (isTeacherRoute && payload.role !== 'teacher') {
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+      
+    } catch (err) {
+      // Token tidak valid atau kedaluwarsa
+      return NextResponse.redirect(new URL('/login', request.url));
     }
-
-    // 2. Sesi Clerk (OAuth)
-    if (clerkUserId) {
-      return NextResponse.next();
-    }
-
-    // Jika tidak ada sesi valid
-    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();
 }
 
-const hasClerkKeys = Boolean(
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY
-);
-
-const clerkHandler = hasClerkKeys
-  ? clerkMiddleware(async (auth, request) => {
-      try {
-        const clerkAuth = await auth();
-        return await handleLocalAuth(request as NextRequest, clerkAuth?.userId);
-      } catch {
-        return await handleLocalAuth(request as NextRequest, null);
-      }
-    })
-  : null;
-
-export default async function proxy(request: NextRequest, event: any) {
-  if (clerkHandler) {
-    try {
-      return await clerkHandler(request as any, event);
-    } catch {
-      return await handleLocalAuth(request, null);
-    }
-  }
-  return await handleLocalAuth(request, null);
-}
-
 export const config = {
-  matcher: [
-    '/admin/:path*',
-    '/student/:path*',
-    '/teacher/:path*',
-    '/login',
-    '/sso-callback',
-  ],
+  matcher: ['/admin/:path*', '/student/:path*', '/teacher/:path*', '/login'],
 };

@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClerk } from "@clerk/nextjs";
 import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle, GraduationCap, QrCode, Library, Bot, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 import ActivePing from "./ActivePing";
 
 export default function Navbar({ role }: { role: string | null }) {
   const router = useRouter();
-  const { signOut } = useClerk();
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -24,11 +22,6 @@ export default function Navbar({ role }: { role: string | null }) {
     
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      try {
-        await signOut({ redirectUrl: "/login" });
-      } catch (e) {
-        // Sesi Clerk mungkin tidak aktif jika login via username biasa
-      }
       toast.success("Logout berhasil! Sampai jumpa.", { id: "logout" });
       
       // Force a full page reload to clear all Next.js client-side cache and states

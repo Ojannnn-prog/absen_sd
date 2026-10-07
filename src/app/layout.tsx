@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -63,9 +62,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getSession();
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-  const content = (
+  return (
     <html lang="id" className={`${plusJakartaSans.variable}`}>
       <body className="bg-bg-light min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
         <ToastProvider />
@@ -93,14 +91,4 @@ export default async function RootLayout({
       </body>
     </html>
   );
-
-  if (publishableKey) {
-    return (
-      <ClerkProvider publishableKey={publishableKey} dynamic>
-        {content}
-      </ClerkProvider>
-    );
-  }
-
-  return content;
 }

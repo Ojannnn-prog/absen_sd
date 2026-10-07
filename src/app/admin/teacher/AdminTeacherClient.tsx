@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { createTeacher, updateTeacher, deleteTeacher } from "./actions";
-import { unlinkUserGoogleAccount } from "@/app/login/clerkActions";
 import toast from "react-hot-toast";
 import { Search, Edit2, Trash2, Eye, EyeOff, Loader2, X, Save, UserPlus, CheckCircle2, Copy, GraduationCap } from "lucide-react";
 import { getAvatarUrl } from "@/lib/avatar";
@@ -28,7 +27,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
   // Form states for Add
   const [addName, setAddName] = useState("");
   const [addUsername, setAddUsername] = useState("");
-  const [addEmail, setAddEmail] = useState("");
   const [addNip, setAddNip] = useState("");
   const [addClassGroup, setAddClassGroup] = useState("A");
   const [addPassword, setAddPassword] = useState("");
@@ -36,7 +34,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
   // Form states for Edit
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
-  const [editEmail, setEditEmail] = useState("");
   const [editNip, setEditNip] = useState("");
   const [editClassGroup, setEditClassGroup] = useState("A");
   const [editPassword, setEditPassword] = useState("");
@@ -58,7 +55,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
     const formData = new FormData();
     formData.append("name", addName);
     formData.append("username", addUsername);
-    formData.append("email", addEmail);
     formData.append("nip", addNip);
     formData.append("classGroup", addClassGroup);
     formData.append("password", addPassword);
@@ -83,7 +79,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
     setAddResult(null);
     setAddName("");
     setAddUsername("");
-    setAddEmail("");
     setAddNip("");
     setAddClassGroup("A");
     setAddPassword("");
@@ -96,7 +91,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
     setEditingTeacher(t);
     setEditName(t.name);
     setEditUsername(t.username);
-    setEditEmail(t.email || "");
     setEditNip(t.nip || "");
     setEditClassGroup(t.classGroup || "A");
     setEditPassword("");
@@ -110,7 +104,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
     const formData = new FormData();
     formData.append("name", editName);
     formData.append("username", editUsername);
-    formData.append("email", editEmail);
     formData.append("nip", editNip);
     formData.append("classGroup", editClassGroup);
     formData.append("newPassword", editPassword);
@@ -127,25 +120,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
       toast.error("Terjadi kesalahan sistem");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUnlinkGoogleTeacher = async (id: string) => {
-    if (!confirm("Putuskan tautan akun Google guru ini? Guru nantinya dapat menautkan kembali akun Google miliknya.")) return;
-    toast.loading("Memutuskan tautan...", { id: "unlink-teacher" });
-    try {
-      const res = await unlinkUserGoogleAccount(id, "teacher");
-      if (res.success) {
-        toast.success(res.message, { id: "unlink-teacher" });
-        setTeachers(prev => prev.map(t => t.id === id ? { ...t, clerkId: null } : t));
-        if (editingTeacher && editingTeacher.id === id) {
-          setEditingTeacher((prev: any) => ({ ...prev, clerkId: null }));
-        }
-      } else {
-        toast.error(res.message, { id: "unlink-teacher" });
-      }
-    } catch (err: any) {
-      toast.error("Terjadi kesalahan sistem", { id: "unlink-teacher" });
     }
   };
 
@@ -256,25 +230,9 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
                           </div>
                           <div>
                             <div className="font-bold text-gray-900">{t.name}</div>
-                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                              <div className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md inline-block">
-                                {t.nip ? `NIP: ${t.nip}` : "Tanpa NIP"}
-                              </div>
-                              {t.clerkId ? (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                  🟢 Google Aktif
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
-                                  ⚪ Belum Ditautkan
-                                </span>
-                              )}
+                            <div className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md inline-block mt-1">
+                              {t.nip ? `NIP: ${t.nip}` : "Tanpa NIP"}
                             </div>
-                            {t.email && (
-                              <div className="text-[11px] text-gray-500 font-medium mt-1 truncate max-w-[200px]" title={t.email}>
-                                ✉️ {t.email}
-                              </div>
-                            )}
                           </div>
                         </div>
                       </td>
@@ -401,18 +359,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
                         </button>
                       ))}
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Email Guru (Opsional)</label>
-                    <input
-                      type="email"
-                      value={addEmail}
-                      onChange={(e) => setAddEmail(e.target.value)}
-                      placeholder="Contoh: guru@gmail.com (Opsional)"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-900"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Opsional. Jika diisi, guru dapat langsung login lewat Google tanpa aktivasi awal.</p>
                   </div>
 
                   <div>
@@ -550,18 +496,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Email Guru (Opsional)</label>
-                <input
-                  type="email"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  placeholder="Contoh: guru@gmail.com"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-900"
-                />
-                <p className="text-xs text-gray-500 mt-1">Kosongkan jika guru tidak menggunakan email untuk login.</p>
-              </div>
-
-              <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Kata Sandi Baru</label>
                 <input
                   type="text"
@@ -571,30 +505,6 @@ export default function AdminTeacherClient({ initialTeachers }: { initialTeacher
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-gray-900"
                 />
               </div>
-
-              {editingTeacher.clerkId ? (
-                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                    <div>
-                      <p className="text-xs font-bold text-emerald-800">Akun Google / OAuth Terhubung</p>
-                      <p className="text-[11px] text-emerald-600 font-medium">Guru dapat login langsung via tombol Google.</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleUnlinkGoogleTeacher(editingTeacher.id)}
-                    className="text-xs font-bold px-3 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
-                  >
-                    Putuskan Tautan
-                  </button>
-                </div>
-              ) : (
-                <div className="bg-gray-50 border border-gray-200 p-3.5 rounded-2xl flex items-center gap-2.5 text-xs text-gray-500">
-                  <span className="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0"></span>
-                  <span>Belum ada akun Google yang ditautkan ke akun guru ini.</span>
-                </div>
-              )}
 
               <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-2">
                 <button
