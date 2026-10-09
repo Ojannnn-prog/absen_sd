@@ -29,17 +29,6 @@ export default async function Home() {
       {/* Hero Welcome & Quick Portal Section */}
       <section className="flex flex-col lg:flex-row items-center justify-between gap-8 py-2">
         <div className="flex-1 flex flex-col gap-5">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-100">
-              <Sparkles className="w-3.5 h-3.5" />
-              Sistem Absensi SDN 231 Sukaasih
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-              <Smartphone className="w-3.5 h-3.5" />
-              Aplikasi Android Tersedia
-            </span>
-          </div>
-
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <img src="/icon.svg" alt="Logo Absensi" className="w-16 h-16 sm:w-20 sm:h-20 drop-shadow-lg" />
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-text-header leading-tight">

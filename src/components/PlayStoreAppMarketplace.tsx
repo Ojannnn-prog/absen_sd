@@ -47,8 +47,8 @@ export default function PlayStoreAppMarketplace({
   const [commentInput, setCommentInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const GITHUB_RELEASE_URL = "https://github.com/Ojannnn-prog/absen_sd/releases/download/v1.0.0/Absensi-SDN231.apk";
-  const GITHUB_RELEASES_PAGE = "https://github.com/Ojannnn-prog/absen_sd/releases";
+  const GITHUB_RELEASE_URL = "https://github.com/Ojannnn-prog/absen_sd/releases/download/1.0.0/Absensi-SDN231.apk";
+  const GITHUB_RELEASES_PAGE = "https://github.com/Ojannnn-prog/absen_sd/releases/tag/1.0.0";
   const LOCAL_FALLBACK_URL = "/downloads/Absensi-SDN231.apk";
 
   const handleDownloadClick = async () => {
@@ -175,7 +175,7 @@ export default function PlayStoreAppMarketplace({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-indigo-950 text-sm sm:text-base">Pemberitahuan Rilis Resmi</span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-600 text-white">v1.0.0</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-600 text-white">1.0.0</span>
               <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">APK Siap Pasang</span>
             </div>
             <p className="text-xs sm:text-sm text-gray-600 mt-0.5 leading-relaxed">
@@ -225,14 +225,18 @@ export default function PlayStoreAppMarketplace({
             <div className="grid grid-cols-4 gap-2 sm:gap-4 mt-4 pt-4 border-t border-gray-100 text-center">
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1 font-black text-gray-900 text-sm sm:text-base">
-                  <span>{stats.averageRating}</span>
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{stats.averageRating > 0 ? stats.averageRating : "0.0"}</span>
+                  <Star className={`w-3.5 h-3.5 ${stats.averageRating > 0 ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
                 </div>
-                <span className="text-[11px] text-gray-400 font-medium">{stats.totalReviews} ulasan</span>
+                <span className="text-[11px] text-gray-400 font-medium">
+                  {stats.totalReviews > 0 ? `${stats.totalReviews} ulasan` : "Belum ada ulasan"}
+                </span>
               </div>
 
               <div className="flex flex-col items-center border-l border-gray-100">
-                <span className="font-black text-gray-900 text-sm sm:text-base">{stats.totalDownloads}+</span>
+                <span className="font-black text-gray-900 text-sm sm:text-base">
+                  {stats.totalDownloads > 0 ? `${stats.totalDownloads}+` : "0"}
+                </span>
                 <span className="text-[11px] text-gray-400 font-medium">Unduhan</span>
               </div>
 
@@ -399,20 +403,24 @@ export default function PlayStoreAppMarketplace({
           {/* Rating Breakdown Overview */}
           <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] items-center gap-6 bg-gray-50/60 p-5 rounded-2xl border border-gray-100">
             <div className="flex flex-col items-center justify-center text-center">
-              <span className="text-5xl font-black text-gray-900 tracking-tighter">{stats.averageRating}</span>
+              <span className="text-5xl font-black text-gray-900 tracking-tighter">
+                {stats.averageRating > 0 ? stats.averageRating : "0.0"}
+              </span>
               <div className="flex items-center gap-1 mt-1">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star
                     key={s}
                     className={`w-4 h-4 ${
-                      s <= Math.round(stats.averageRating)
+                      stats.averageRating > 0 && s <= Math.round(stats.averageRating)
                         ? "fill-amber-400 text-amber-400"
                         : "text-gray-300"
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-xs text-gray-400 mt-1 font-semibold">{stats.totalReviews} total penilaian</span>
+              <span className="text-xs text-gray-400 mt-1 font-semibold">
+                {stats.totalReviews > 0 ? `${stats.totalReviews} total penilaian` : "Belum ada penilaian"}
+              </span>
             </div>
 
             {/* Stars Bar Chart */}

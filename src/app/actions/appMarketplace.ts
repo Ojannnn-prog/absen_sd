@@ -19,8 +19,8 @@ export type AppReviewItem = {
   createdAt: string;
 };
 
-// Nilai dasar unduhan awal riil sekolah (agar tampilan profesional sejak peluncuran pertama)
-const BASE_DOWNLOAD_COUNT = 142;
+// Nilai dasar unduhan awal dimulai murni dari 0 (real-time)
+const BASE_DOWNLOAD_COUNT = 0;
 
 export async function getAppMarketplaceData(): Promise<{
   stats: AppMarketplaceStats;
@@ -35,53 +35,19 @@ export async function getAppMarketplaceData(): Promise<{
       }),
     ]);
 
-    // Jika database review masih kosong, buat beberapa review contoh awal agar wadah ulasan langsung menarik
-    let reviewsToUse = dbReviews;
-    if (dbReviews.length === 0) {
-      const initialReviews = [
-        {
-          name: "Hj. Ratna Sari, M.Pd.",
-          role: "Guru Kelas 6",
-          rating: 5,
-          comment: "Alhamdulillah sangat mempermudah absensi kelas setiap pagi. Fitur scan wajah dan QR bekerja sangat cepat tanpa kendala.",
-        },
-        {
-          name: "Bpk. Hendra Gunawan",
-          role: "Wali Murid",
-          rating: 5,
-          comment: "Sangat praktis untuk mengecek kehadiran anak dan melihat ranking belajar. Desainnya ramah anak dan mudah dipahami.",
-        },
-        {
-          name: "Ibu Maya Anggraeni",
-          role: "Wali Murid",
-          rating: 4,
-          comment: "Aplikasi bagus sekali! Mohon tambahkan notifikasi suara saat scan wajah berhasil agar anak lebih antusias. Semangat untuk tim IT SDN 231!",
-        },
-      ];
-
-      await prisma.appReview.createMany({
-        data: initialReviews,
-      });
-
-      reviewsToUse = await prisma.appReview.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 30,
-      });
-    }
-
-    const totalReviews = reviewsToUse.length;
+    const totalReviews = dbReviews.length;
     const ratingDistribution: { [star: number]: number } = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let ratingSum = 0;
 
-    reviewsToUse.forEach((rev) => {
+    dbReviews.forEach((rev) => {
       const r = Math.min(5, Math.max(1, rev.rating));
       ratingDistribution[r] = (ratingDistribution[r] || 0) + 1;
       ratingSum += r;
     });
 
-    const averageRating = totalReviews > 0 ? Number((ratingSum / totalReviews).toFixed(1)) : 5.0;
+    const averageRating = totalReviews > 0 ? Number((ratingSum / totalReviews).toFixed(1)) : 0;
 
-    const formattedReviews: AppReviewItem[] = reviewsToUse.map((rev) => ({
+    const formattedReviews: AppReviewItem[] = dbReviews.map((rev) => ({
       id: rev.id,
       name: rev.name,
       role: rev.role,
@@ -103,10 +69,10 @@ export async function getAppMarketplaceData(): Promise<{
     console.error("Error fetching app marketplace data:", error);
     return {
       stats: {
-        totalDownloads: BASE_DOWNLOAD_COUNT,
-        averageRating: 4.9,
-        totalReviews: 3,
-        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 2 },
+        totalDownloads: 0,
+        averageRating: 0,
+        totalReviews: 0,
+        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       },
       reviews: [],
     };
