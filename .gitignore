@@ -52,3 +52,4 @@ AGENTS.md
 
 # Android APK binaries
 *.apk
+!public/downloads/*.apk

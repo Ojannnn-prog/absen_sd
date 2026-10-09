@@ -187,3 +187,23 @@ model TemanMuMessage {
 
   @@index([conversationId, createdAt])
 }
+
+model AppReview {
+  id        String   @id @default(cuid())
+  name      String
+  role      String   @default("Pengguna") // "Wali Murid", "Guru", "Siswa", "Masyarakat"
+  rating    Int      @default(5)
+  comment   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model AppDownloadLog {
+  id        String   @id @default(cuid())
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

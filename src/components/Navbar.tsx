@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle, GraduationCap, QrCode, Library, Bot, Sparkles } from "lucide-react";
+import { LogOut, Menu, X, Home, BookOpen, Users, AlertTriangle, GraduationCap, QrCode, Library, Bot, Sparkles, Smartphone } from "lucide-react";
 import toast from "react-hot-toast";
 import ActivePing from "./ActivePing";
 
@@ -101,8 +101,18 @@ export default function Navbar({ role }: { role: string | null }) {
     <>
       <nav className="flex items-center gap-2 md:gap-4">
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-2 mr-4">
-          {role && <><NavLinks /><a href="/temanmu" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl bg-violet-50 text-violet-700 hover:bg-violet-100 font-bold transition-colors"><Bot className="w-5 h-5" /> TemanMu</a></>}
+        <div className="hidden md:flex items-center gap-2 mr-2">
+          {role && (
+            <>
+              <NavLinks />
+              <a href="/temanmu" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl bg-violet-50 text-violet-700 hover:bg-violet-100 font-bold transition-colors">
+                <Bot className="w-5 h-5" /> TemanMu
+              </a>
+              <a href="/download" onClick={() => setIsOpen(false)} className="flex items-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold transition-colors text-sm">
+                <Smartphone className="w-4 h-4 text-emerald-600" /> Download APK
+              </a>
+            </>
+          )}
         </div>
 
         {role ? (
@@ -124,12 +134,21 @@ export default function Navbar({ role }: { role: string | null }) {
             </button>
           </>
         ) : (
-          <a 
-            href="/login"
-            className="text-sm font-medium text-text-body hover:text-primary transition-colors flex items-center gap-1"
-          >
-            Login
-          </a>
+          <div className="flex items-center gap-3">
+            <a 
+              href="/#app-marketplace"
+              className="text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3.5 py-2 rounded-full border border-emerald-200/60 flex items-center gap-1.5 transition-colors shadow-sm"
+            >
+              <Smartphone className="w-4 h-4 text-emerald-600" />
+              <span>Download APK</span>
+            </a>
+            <a 
+              href="/login"
+              className="text-sm font-bold text-primary hover:text-primary-hover px-4 py-2 rounded-full border border-primary/20 hover:bg-primary/5 transition-colors"
+            >
+              Login
+            </a>
+          </div>
         )}
       </nav>
 
@@ -138,7 +157,12 @@ export default function Navbar({ role }: { role: string | null }) {
         <div className="absolute top-full left-0 right-0 w-full bg-white shadow-xl border-b border-gray-100 md:hidden animate-in slide-in-from-top-2 duration-200 z-50 overflow-hidden">
           <div className="flex flex-col p-4 gap-2">
             <NavLinks />
-            <a href="/temanmu" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl bg-violet-50 text-violet-700 font-bold transition-colors"><Bot className="w-5 h-5" /> TemanMu</a>
+            <a href="/temanmu" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl bg-violet-50 text-violet-700 font-bold transition-colors">
+              <Bot className="w-5 h-5" /> TemanMu
+            </a>
+            <a href="/download" onClick={() => setIsOpen(false)} className="flex items-center gap-2 py-2 px-4 rounded-xl bg-emerald-50 text-emerald-700 font-bold transition-colors">
+              <Smartphone className="w-5 h-5 text-emerald-600" /> Download APK (Android)
+            </a>
             <div className="h-px bg-gray-100 my-2 w-full"></div>
             <button 
               onClick={handleLogoutClick}
