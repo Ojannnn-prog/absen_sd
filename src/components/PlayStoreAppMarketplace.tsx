@@ -47,9 +47,13 @@ export default function PlayStoreAppMarketplace({
   const [commentInput, setCommentInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const GITHUB_RELEASE_URL = "https://github.com/Ojannnn-prog/absen_sd/releases/download/v1.0.0/Absensi-SDN231.apk";
+  const GITHUB_RELEASES_PAGE = "https://github.com/Ojannnn-prog/absen_sd/releases";
+  const LOCAL_FALLBACK_URL = "/downloads/Absensi-SDN231.apk";
+
   const handleDownloadClick = async () => {
     setIsDownloading(true);
-    toast.loading("Menyiapkan unduhan APK...", { id: "apk-dl" });
+    toast.loading("Menyiapkan unduhan APK resmi dari GitHub CDN...", { id: "apk-dl" });
 
     try {
       // Rekam di database (counter download bertambah)
@@ -61,23 +65,31 @@ export default function PlayStoreAppMarketplace({
         }));
       }
 
-      // Trigger direct download ke browser
+      // Trigger direct download dari GitHub Releases CDN
       const link = document.createElement("a");
-      link.href = "/downloads/Absensi-SDN231.apk";
-      link.download = "Absensi-SDN231.apk";
+      link.href = GITHUB_RELEASE_URL;
+      link.setAttribute("download", "Absensi-SDN231.apk");
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      toast.success("File Absensi-SDN231.apk sedang diunduh! Cek notifikasi download HP Anda.", {
+      toast.success("File Absensi-SDN231.apk sedang diunduh via GitHub CDN! Cek notifikasi download HP Anda.", {
         id: "apk-dl",
         duration: 5000,
       });
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Gagal memulai unduhan. Silakan gunakan link alternatif Google Drive.", {
-        id: "apk-dl",
-      });
+      // Fallback ke server web lokal jika ada hambatan
+      const link = document.createElement("a");
+      link.href = LOCAL_FALLBACK_URL;
+      link.download = "Absensi-SDN231.apk";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Mengunduh melalui jalur server cadangan...", { id: "apk-dl" });
     } finally {
       setIsDownloading(false);
     }
@@ -617,14 +629,14 @@ export default function PlayStoreAppMarketplace({
         </div>
       )}
 
-      {/* Modal Link Alternatif Google Drive */}
+      {/* Modal Link Alternatif Unduhan */}
       {showDriveModal && (
         <div className="fixed inset-0 z-[150] bg-gray-950/60 backdrop-blur-sm p-4 flex items-center justify-center animate-in fade-in">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-gray-900 text-lg flex items-center gap-2">
                 <ExternalLink className="w-5 h-5 text-indigo-600" />
-                Link Cadangan Google Drive
+                Pilihan Jalur Unduhan APK
               </h3>
               <button
                 onClick={() => setShowDriveModal(false)}
@@ -635,35 +647,52 @@ export default function PlayStoreAppMarketplace({
             </div>
 
             <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-              Jika unduhan langsung mengalami gangguan jaringan, Anda dapat mengunduh salinan cadangan APK melalui Google Drive resmi sekolah kami.
+              Tersedia beberapa jalur unduhan resmi berkecepatan tinggi untuk kemudahan Anda:
             </p>
 
             <div className="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 flex items-center justify-between text-xs font-semibold text-indigo-900">
-              <span>Nama File:</span>
-              <span className="font-mono">Absensi-SDN231.apk</span>
+              <span>Berkas:</span>
+              <span className="font-mono">Absensi-SDN231.apk (13.2 MB)</span>
             </div>
 
-            <div className="flex flex-col gap-2 pt-2">
+            <div className="flex flex-col gap-2.5 pt-1">
+              <a
+                href={GITHUB_RELEASE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  setShowDriveModal(false);
+                  toast.success("Memulai unduhan via GitHub Releases CDN!");
+                }}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl text-center shadow-md transition-colors flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Unduh via GitHub Releases CDN (Resmi)
+              </a>
+
               <a
                 href="/downloads/Absensi-SDN231.apk"
                 download="Absensi-SDN231.apk"
                 onClick={() => {
                   setShowDriveModal(false);
-                  toast.success("Memulai unduhan langsung!");
+                  toast.success("Memulai unduhan via Server Cadangan!");
                 }}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl text-center shadow-md transition-colors"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl text-center shadow-md transition-colors flex items-center justify-center gap-2"
               >
-                Unduh via Jalur Cepat (Direct Server)
+                <Download className="w-4 h-4" />
+                Unduh via Server Web (Cadangan)
               </a>
-              <button
-                onClick={() => {
-                  setShowDriveModal(false);
-                  toast("Tautan Google Drive sedang disiapkan oleh Administrator.", { icon: "ℹ️" });
-                }}
-                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl text-center transition-colors"
+
+              <a
+                href={GITHUB_RELEASES_PAGE}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowDriveModal(false)}
+                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl text-center transition-colors flex items-center justify-center gap-2"
               >
-                Buka di Google Drive Web
-              </button>
+                <ExternalLink className="w-4 h-4 text-gray-500" />
+                Buka Halaman Rilis GitHub
+              </a>
             </div>
           </div>
         </div>
