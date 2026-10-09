@@ -49,3 +49,6 @@ next-env.d.ts
 .windsurf/
 skills-lock.json
 AGENTS.md
+
+# Android APK binaries
+*.apk

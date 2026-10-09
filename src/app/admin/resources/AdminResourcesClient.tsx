@@ -173,17 +173,17 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full min-w-0 max-w-full">
       {!isAdding ? (
         <button 
           onClick={() => setIsAdding(true)}
-          className="card-soft border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 p-6 flex flex-col items-center justify-center text-primary font-bold transition-all"
+          className="card-soft border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 p-5 sm:p-6 flex flex-col items-center justify-center text-primary font-bold transition-all w-full min-w-0"
         >
-          <Plus className="w-8 h-8 mb-2" />
-          Tambah Sesi Baru (Materi / Quiz)
+          <Plus className="w-7 h-7 sm:w-8 sm:h-8 mb-1.5 sm:mb-2" />
+          <span className="text-sm sm:text-base">Tambah Sesi Baru (Materi / Quiz)</span>
         </button>
       ) : (
-        <div className="card-soft p-6 border-2 border-primary/20">
+        <div className="card-soft p-4 sm:p-6 border-2 border-primary/20 w-full min-w-0">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-lg">{editingId ? 'Edit Sesi' : 'Sesi Baru'}</h3>
             <button onClick={resetForm} className="text-gray-400 hover:text-red-500 text-sm font-bold">Batal</button>
@@ -357,18 +357,18 @@ export default function AdminResourcesClient({ initialResources }: { initialReso
         )}
         
         {resources.map((res, i) => (
-          <div key={res.id} className={`card-soft p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:border-primary/30 transition-colors ${res.type === 'Quiz' ? 'border-red-100 bg-red-50/10' : ''}`}>
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black ${res.type === 'Quiz' ? 'bg-red-100 text-red-600' : 'bg-gray-50 border border-gray-100 text-gray-300'}`}>
+          <div key={res.id} className={`card-soft p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:border-primary/30 transition-colors w-full min-w-0 ${res.type === 'Quiz' ? 'border-red-100 bg-red-50/10' : ''}`}>
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black shrink-0 ${res.type === 'Quiz' ? 'bg-red-100 text-red-600' : 'bg-gray-50 border border-gray-100 text-gray-300'}`}>
                 {i + 1}
               </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2 break-words">
                   {getTypeIcon(res.type)}
-                  {res.title}
+                  <span className="break-words">{res.title}</span>
                 </h3>
-                <p className="text-sm text-gray-500">{res.description}</p>
-                <div className="flex gap-2 mt-2">
+                <p className="text-xs sm:text-sm text-gray-500 break-words line-clamp-2">{res.description}</p>
+                <div className="flex flex-wrap gap-2 mt-2">
                   <span className={`text-xs font-bold px-2 py-1 rounded-md uppercase ${res.type === 'Quiz' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>{res.type}</span>
                   <span className="text-xs font-bold px-2 py-1 bg-blue-50 text-blue-600 rounded-md">⏳ {res.type === 'Quiz' ? '30' : res.durationMins} Menit</span>
                   {res.type === 'Quiz' && (

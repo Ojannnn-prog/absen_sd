@@ -71,36 +71,70 @@ export default function TeacherReferencesClient({ initialReferences }: { initial
 
   if (!selected) {
     return (
-      <div className="min-h-screen bg-gray-50/50 pb-16"><main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8"><div className="card-soft p-12 text-center text-gray-500">Belum ada modul atau referensi yang tersedia dari admin.</div></main></div>
+      <div className="card-soft p-12 text-center text-gray-500 w-full">
+        Belum ada modul atau referensi yang tersedia dari admin.
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-16">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div><h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Modul & Referensi</h1><p className="text-gray-500 mt-1">Buka bahan rujukan dari admin dan simpan catatan pribadi untuk setiap modul.</p></div>
-          <button onClick={() => setSidebarOpen(true)} className="md:hidden p-3 bg-indigo-600 text-white rounded-xl shadow-md" title="Daftar referensi"><Menu className="w-5 h-5" /></button>
+    <div className="w-full min-w-0 max-w-full flex flex-col gap-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Modul & Referensi</h1>
+          <p className="text-sm sm:text-base text-gray-500 mt-1">
+            Buka bahan rujukan dari admin dan simpan catatan pribadi untuk setiap modul.
+          </p>
         </div>
+        <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2.5 sm:p-3 bg-indigo-600 text-white rounded-xl shadow-md shrink-0" title="Daftar referensi">
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-6">
-          <aside className={`${sidebarOpen ? "fixed inset-0 z-[140] bg-gray-900/40 p-4" : "hidden"} md:block md:static md:bg-transparent md:p-0`}>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 md:sticky md:top-4">
-              <div className="flex items-center justify-between px-2 pb-2 border-b border-gray-100"><h2 className="font-bold text-gray-900">Daftar Modul</h2><button onClick={() => setSidebarOpen(false)} className="md:hidden p-1 text-gray-400"><X className="w-5 h-5" /></button></div>
-              <div className="flex flex-col gap-2 mt-3 max-h-[65vh] overflow-y-auto">
-                {references.map((reference) => <button key={reference.id} onClick={() => selectReference(reference)} className={`text-left p-3 rounded-xl flex items-start gap-3 transition-colors ${selected.id === reference.id ? "bg-indigo-50 border border-indigo-200" : "hover:bg-gray-50 border border-transparent"}`}><span className="mt-0.5 shrink-0">{getTypeIcon(reference.fileType)}</span><span className="min-w-0"><span className="block text-sm font-bold text-gray-900 truncate">{reference.title}</span><span className="text-xs text-gray-500">{reference.fileType}{reference.note?.content ? " • Ada catatan" : ""}</span></span></button>)}
+      <div className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-6 w-full min-w-0">
+        <aside className={`${sidebarOpen ? "fixed inset-0 z-[140] bg-gray-900/40 p-4" : "hidden"} md:block md:static md:bg-transparent md:p-0`}>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 md:sticky md:top-4 max-w-sm mx-auto md:max-w-none">
+            <div className="flex items-center justify-between px-2 pb-2 border-b border-gray-100">
+              <h2 className="font-bold text-gray-900 text-sm sm:text-base">Daftar Modul</h2>
+              <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1 text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 mt-3 max-h-[65vh] overflow-y-auto">
+              {references.map((reference) => (
+                <button
+                  key={reference.id}
+                  onClick={() => selectReference(reference)}
+                  className={`text-left p-3 rounded-xl flex items-start gap-3 transition-colors w-full min-w-0 ${selected.id === reference.id ? "bg-indigo-50 border border-indigo-200" : "hover:bg-gray-50 border border-transparent"}`}
+                >
+                  <span className="mt-0.5 shrink-0">{getTypeIcon(reference.fileType)}</span>
+                  <span className="min-w-0 flex-1 overflow-hidden">
+                    <span className="block text-sm font-bold text-gray-900 truncate">{reference.title}</span>
+                    <span className="text-xs text-gray-500">{reference.fileType}{reference.note?.content ? " • Ada catatan" : ""}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <section className="min-w-0 space-y-4 w-full">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden w-full min-w-0">
+            <div className="p-3.5 sm:p-4 border-b border-gray-100 flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-black text-gray-900 truncate">{selected.title}</h2>
+                <span className="inline-flex mt-1 text-xs font-bold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md">
+                  {selected.fileType}
+                </span>
               </div>
+              <button onClick={() => setNoteOpen(true)} className="shrink-0 hidden sm:flex items-center gap-2 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl font-bold text-sm transition-colors">
+                <BookOpen className="w-4 h-4" /> Catatan Saya
+              </button>
             </div>
-          </aside>
-
-          <section className="min-w-0 space-y-4">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-3"><div className="min-w-0"><h2 className="text-xl font-black text-gray-900 truncate">{selected.title}</h2><span className="inline-flex mt-1 text-xs font-bold px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md">{selected.fileType}</span></div><button onClick={() => setNoteOpen(true)} className="shrink-0 hidden sm:flex items-center gap-2 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl font-bold text-sm"><BookOpen className="w-4 h-4" /> Catatan Saya</button></div>
-              <iframe src={selected.driveUrl} title={selected.title} className="w-full h-[65vh] min-h-[420px] border-0" allow="autoplay" />
-            </div>
-          </section>
-        </div>
-      </main>
+            <iframe src={selected.driveUrl} title={selected.title} className="w-full h-[60vh] sm:h-[65vh] min-h-[350px] border-0" allow="autoplay" />
+          </div>
+        </section>
+      </div>
 
       <button onClick={() => setNoteOpen(true)} className="fixed right-3 top-1/2 -translate-y-1/2 z-30 sm:hidden w-12 h-12 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center" title="Buka catatan"><BookOpen className="w-6 h-6" /></button>
 

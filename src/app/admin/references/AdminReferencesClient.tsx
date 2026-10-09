@@ -90,19 +90,19 @@ export default function AdminReferencesClient({ initialReferences }: { initialRe
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full min-w-0 max-w-full">
       {!isFormOpen ? (
         <button
           onClick={() => setIsFormOpen(true)}
-          className="card-soft border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 p-6 flex flex-col items-center justify-center text-primary font-bold transition-all"
+          className="card-soft border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 p-5 sm:p-6 flex flex-col items-center justify-center text-primary font-bold transition-all w-full min-w-0"
         >
-          <Plus className="w-8 h-8 mb-2" />
-          Tambah Modul / Referensi
+          <Plus className="w-7 h-7 sm:w-8 sm:h-8 mb-1.5 sm:mb-2" />
+          <span className="text-sm sm:text-base">Tambah Modul / Referensi</span>
         </button>
       ) : (
-        <div className="card-soft p-6 border-2 border-primary/20">
+        <div className="card-soft p-4 sm:p-6 border-2 border-primary/20 w-full min-w-0">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-lg">{editingId ? "Edit Referensi" : "Referensi Baru"}</h2>
+            <h2 className="font-bold text-base sm:text-lg">{editingId ? "Edit Referensi" : "Referensi Baru"}</h2>
             <button onClick={resetForm} className="p-2 text-gray-400 hover:text-red-500" title="Batal">
               <X className="w-5 h-5" />
             </button>
@@ -133,30 +133,50 @@ export default function AdminReferencesClient({ initialReferences }: { initialRe
         </div>
       )}
 
-      <div className="grid gap-3">
+      <div className="flex flex-col gap-3 w-full min-w-0">
         {references.length === 0 && <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">Belum ada modul atau referensi.</div>}
         {references.map((reference) => (
-          <div key={reference.id} className="card-soft p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary/30 transition-colors">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">{getTypeIcon(reference.fileType)}</div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-gray-900 truncate">{reference.title}</h3>
-                <span className="inline-flex mt-1 text-xs font-bold px-2 py-1 bg-gray-100 text-gray-600 rounded-md">{reference.fileType}</span>
+          <div key={reference.id} className="card-soft p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-primary/30 transition-colors w-full min-w-0">
+            <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                {getTypeIcon(reference.fileType)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-snug break-words" title={reference.title}>
+                  {reference.title}
+                </h3>
+                <span className="inline-flex mt-1 text-xs font-bold px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md">
+                  {reference.fileType}
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button onClick={() => setPreview(reference)} className="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-sm rounded-xl border border-gray-200 flex items-center gap-1.5"><Eye className="w-4 h-4" /> Preview</button>
-              <button onClick={() => startEdit(reference)} className="p-2 text-amber-500 hover:bg-amber-50 rounded-xl" title="Edit"><Edit2 className="w-5 h-5" /></button>
-              <button onClick={() => setToDelete(reference)} className="p-2 text-red-400 hover:bg-red-50 rounded-xl" title="Hapus"><Trash2 className="w-5 h-5" /></button>
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 w-full sm:w-auto justify-end">
+              <button onClick={() => setPreview(reference)} className="px-3 py-1.5 sm:py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-xs sm:text-sm rounded-xl border border-gray-200 flex items-center gap-1.5 transition-colors">
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Preview
+              </button>
+              <button onClick={() => startEdit(reference)} className="p-1.5 sm:p-2 text-amber-500 hover:bg-amber-50 rounded-xl transition-colors" title="Edit">
+                <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+              <button onClick={() => setToDelete(reference)} className="p-1.5 sm:p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors" title="Hapus">
+                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
             </div>
           </div>
         ))}
       </div>
 
       {preview && (
-        <div className="fixed inset-0 z-[160] bg-gray-950/70 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center">
+        <div className="fixed inset-0 z-[160] bg-gray-950/70 backdrop-blur-sm p-3 sm:p-6 md:p-8 flex items-center justify-center">
           <div className="bg-white rounded-2xl w-full max-w-5xl h-[85vh] overflow-hidden flex flex-col shadow-2xl">
-            <div className="p-4 border-b flex items-center justify-between gap-3"><div className="flex items-center gap-2 min-w-0"><BookOpen className="w-5 h-5 text-primary shrink-0" /><h2 className="font-bold truncate">{preview.title}</h2></div><button onClick={() => setPreview(null)} className="p-2 text-gray-500 hover:text-red-500"><X className="w-5 h-5" /></button></div>
+            <div className="p-3 sm:p-4 border-b flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <BookOpen className="w-5 h-5 text-primary shrink-0" />
+                <h2 className="font-bold text-sm sm:text-base truncate">{preview.title}</h2>
+              </div>
+              <button onClick={() => setPreview(null)} className="p-1.5 sm:p-2 text-gray-500 hover:text-red-500 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <iframe src={preview.driveUrl} title={preview.title} className="w-full flex-1 border-0" allow="autoplay" />
           </div>
         </div>
